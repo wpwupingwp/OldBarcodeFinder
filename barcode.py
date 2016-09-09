@@ -54,7 +54,15 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
 
 def parse(blast_results):
     for blast_result in blast_results:
-        SearchIO.parse(blast_result, 'blast-xml')
+        result = SearchIO.parse(blast_result, 'blast-xml')
+        print('query_id hit_id query_start query_end hit_start hit_end score')
+        for query in result:
+            for hit in query:
+                for hsp in hit:
+                    print(hsp.query_id, hsp.hit_id, hsp.query_start,
+                          hsp.query_end, hsp.hit_start, hsp.hit_end,
+                          hsp.bitscore)
+        print('##############################################################')
 
 
 def main():
@@ -83,6 +91,7 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
+    parse(blast_result)
 
 
 if __name__ == '__main__':
