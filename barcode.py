@@ -52,16 +52,17 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     return output_file
 
 
-def parse(blast_results):
+def parse(blast_results, limit):
     for blast_result in blast_results:
         result = SearchIO.parse(blast_result, 'blast-xml')
         print('query_id hit_id query_start query_end hit_start hit_end score')
         for query in result:
             for hit in query:
                 for hsp in hit:
-                    print(hsp.query_id, hsp.hit_id, hsp.query_start,
-                          hsp.query_end, hsp.hit_start, hsp.hit_end,
-                          hsp.bitscore)
+                    if hsp.hit_end - hsp.hit_start >= 200:
+                        print(hsp.query_id, hsp.hit_id, hsp.query_start,
+                              hsp.query_end, hsp.hit_start, hsp.hit_end,
+                              hsp.bitscore)
         print('##############################################################')
 
 
@@ -76,6 +77,8 @@ def main():
     database, which contains longest sequence''')
     parser.add_argument('-s', '--sample', default=None, type=int,
                         help='sample numbers')
+    parser.add_argument('-m', 'min_length', default=200, type=int,
+                        help='minium barcode length')
     parser.print_help()
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
@@ -91,7 +94,7 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
-    parse(blast_result)
+    parse(blast_result, arg.min_length)
 
 
 if __name__ == '__main__':
