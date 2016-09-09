@@ -56,11 +56,11 @@ def main():
     """This program will try to find out barcode to devide different species
     while ignore distinction among subspecies level."""
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument('--path', default='.',
+    parser.add_argument('-p', '--path', default='.',
                         help='target path, default is present directory')
-    parser.add_argument('--db', default=None, help='''fasta file to make blast
+    parser.add_argument('-d', '--db', default=None, help='''fasta file to make blast
     database, which contains longest sequence''')
-    parser.add_argument('--sample', default=None, type=int,
+    parser.add_argument('-s', '--sample', default=None, type=int,
                         help='sample numbers')
     parser.print_help()
     arg = parser.parse_args()
