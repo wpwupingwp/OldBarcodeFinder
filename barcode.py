@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
-from Bio import SeqIO
+from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
 from glob import glob
 from multiprocessing import cpu_count
@@ -50,6 +50,11 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
              out=output_file)
     stdout, stderr = cmd()
     return output_file
+
+
+def parse(blast_results):
+    for blast_result in blast_results:
+        SearchIO.parse(blast_result, 'blast-xml')
 
 
 def main():
