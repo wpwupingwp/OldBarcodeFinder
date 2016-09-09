@@ -54,7 +54,8 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
 
 def main():
     """This program will try to find out barcode to devide different species
-    while ignore distinction among subspecies level."""
+    while ignore distinction among subspecies level.
+    """
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('-p', '--path', default='.',
                         help='target path, default is present directory')
@@ -64,7 +65,7 @@ def main():
                         help='sample numbers')
     parser.print_help()
     arg = parser.parse_args()
-    fasta_files = glob(arg.path+'*.fasta')
+    fasta_files = glob(arg.path+'/*.fasta')
     if arg.sample is not None:
         fasta_files = get_sample(fasta_files, arg.sample)
     if arg.db is None:
