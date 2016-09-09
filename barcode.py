@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import argparse
-import os
 from Bio import SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
 from glob import glob
@@ -17,8 +16,8 @@ def find_longest(fasta_files):
         for sequence in raw:
             length.append(len(sequence))
         avg_length.append([fasta, sum(length)/len(length)])
-    avg_length.sort(key=lambda i:i[1])
-    return  [i[0] for i in avg_length]
+    avg_length.sort(key=lambda i: i[1])
+    return [i[0] for i in avg_length]
 
 
 def get_sample(fasta_files, target):
@@ -28,7 +27,7 @@ def get_sample(fasta_files, target):
         raw = SeqIO.parse(fasta, 'fasta')
         with open(output, 'w') as output_file:
             for n in range(target):
-               SeqIO.write(next(raw), output_file, 'fasta')
+                SeqIO.write(next(raw), output_file, 'fasta')
         new_fasta_files.append(output)
     return new_fasta_files
 
@@ -59,10 +58,12 @@ def main():
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('--path', default='.',
                         help='target path, default is present directory')
-    parser.add_argument('--db', default=None, help='fasta file to make blast database, which contains longest sequence')
-    parser.add_argument('--sample', default=None, type=int, help='sample numbers')
+    parser.add_argument('--db', default=None, help='''fasta file to make blast
+    database, which contains longest sequence''')
+    parser.add_argument('--sample', default=None, type=int,
+                        help='sample numbers')
     parser.print_help()
-    arg = parser.parse_args() 
+    arg = parser.parse_args()
     fasta_files = glob(arg.path+'*.fasta')
     if arg.sample is not None:
         fasta_files = get_sample(fasta_files, arg.sample)
