@@ -61,14 +61,18 @@ def parse(blast_results, limit):
             'query_id,hit_id,query_start,query_end,hit_start,hit_end,score\n')
         for query in result:
             for hit in query:
+                mark = dict()
                 for hsp in hit:
                     if hsp.bitscore >= limit:
-                        yield hsp.query_start, hsp.query_end, hsp.bitscore
+                        if hsp.query_start in mark:
+                            continue
+                        mark[hsp.query_start] = 1
                         line = [hsp.query_id, hsp.hit_id, hsp.query_start,
                                 hsp.query_end, hsp.hit_start, hsp.hit_end,
                                 hsp.bitscore]
                         line = [str(_) for _ in line]
                         handle.write(','.join(line)+'\n')
+                        yield hsp.query_start, hsp.query_end, hsp.bitscore
         handle.write(
             '#############################################################\n')
 
