@@ -53,17 +53,21 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
 
 
 def parse(blast_results, limit):
+    handle = open('stats.tmp', 'w')
     for blast_result in blast_results:
         result = SearchIO.parse(blast_result, 'blast-xml')
-        print('query_id hit_id query_start query_end hit_start hit_end score')
+        handle.write(
+            'query_id,hit_id,query_start,query_end,hit_start,hit_end,score')
         for query in result:
             for hit in query:
                 for hsp in hit:
-                    if hsp.hit_end - hsp.hit_start >= 200:
-                        print(hsp.query_id, hsp.hit_id, hsp.query_start,
-                              hsp.query_end, hsp.hit_start, hsp.hit_end,
-                              hsp.bitscore)
-        print('##############################################################')
+                    if hsp.bitscore >= 200:
+                        handle.write('{},{},{},{},{},{},{}\n'.format(
+                            hsp.query_id, hsp.hit_id, hsp.query_start,
+                            hsp.query_end, hsp.hit_start, hsp.hit_end,
+                            hsp.bitscore))
+        handle.write(
+            '##############################################################')
 
 
 def main():
@@ -75,9 +79,9 @@ def main():
                         help='target path, default is present directory')
     parser.add_argument('-d', '--db', default=None, help='''fasta file to make blast
     database, which contains longest sequence''')
-    parser.add_argument('-s', '--sample', default=None, type=int,
+    parser.add_argument('-s', '--sample', default=5, type=int,
                         help='sample numbers')
-    parser.add_argument('-m', 'min_length', default=200, type=int,
+    parser.add_argument('-m', '--min_length', default=200, type=int,
                         help='minium barcode length')
     parser.print_help()
     arg = parser.parse_args()
