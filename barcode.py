@@ -58,7 +58,7 @@ def parse(blast_results, limit):
     for blast_result in blast_results:
         result = SearchIO.parse(blast_result, 'blast-xml')
         handle.write(
-            'query_id,hit_id,query_start,query_end,hit_start,hit_end,score')
+            'query_id,hit_id,query_start,query_end,hit_start,hit_end,score\n')
         for query in result:
             for hit in query:
                 for hsp in hit:
@@ -70,12 +70,12 @@ def parse(blast_results, limit):
                         line = [str(_) for _ in line]
                         handle.write(','.join(line)+'\n')
         handle.write(
-            '##############################################################')
+            '#############################################################\n')
 
 
 def main():
-    """This program will try to find out barcode to devide different species
-    while ignore distinction among subspecies level.
+    """This program will try to find out single-copy barcode to devide
+    different species while ignore distinction among subspecies level.
     """
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('-p', '--path', default='.',
@@ -107,8 +107,9 @@ def main():
         for n in range(line[0], line[1]+1):
             count[n] += line[2]
             count[n] += 1
-    print(count)
-    print(count_2)
+    print(len(count_2))
+    for i in count_2.keys():
+        print(i, count[i])
 
 
 if __name__ == '__main__':
