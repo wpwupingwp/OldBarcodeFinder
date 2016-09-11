@@ -3,6 +3,7 @@
 import argparse
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
+from collections import defaultdict
 from glob import glob
 from multiprocessing import cpu_count
 from subprocess import run
@@ -61,11 +62,13 @@ def parse(blast_results, limit):
         for query in result:
             for hit in query:
                 for hsp in hit:
-                    if hsp.bitscore >= 200:
-                        handle.write('{},{},{},{},{},{},{}\n'.format(
-                            hsp.query_id, hsp.hit_id, hsp.query_start,
-                            hsp.query_end, hsp.hit_start, hsp.hit_end,
-                            hsp.bitscore))
+                    if hsp.bitscore >= limit:
+                        yield hsp.query_start, hsp.query_end, hsp.bitscore
+                        line = [hsp.query_id, hsp.hit_id, hsp.query_start,
+                                hsp.query_end, hsp.hit_start, hsp.hit_end,
+                                hsp.bitscore]
+                        line = [str(_) for _ in line]
+                        handle.write(','.join(line)+'\n')
         handle.write(
             '##############################################################')
 
@@ -98,7 +101,14 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
-    parse(blast_result, arg.min_length)
+    count = defaultdict(lambda: 0)
+    count_2 = defaultdict(lambda: 0)
+    for line in parse(blast_result, arg.min_length):
+        for n in range(line[0], line[1]+1):
+            count[n] += line[2]
+            count[n] += 1
+    print(count)
+    print(count_2)
 
 
 if __name__ == '__main__':
