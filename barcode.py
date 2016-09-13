@@ -61,21 +61,20 @@ def parse(blast_results, limit):
             for hit in query:
                 mark = defaultdict(lambda: 0)
                 for hsp in hit:
-                    if hsp.query_end - hsp.query_start < limit:
+                    # if hsp.query_end - hsp.query_start < limit:
+                    if hsp.bitscore < limit:
                         continue
                     mark[hsp.query_start] += 1
                     line = [hsp.query_id, hsp.hit_id, hsp.query_start,
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
                             hsp.bitscore]
                     analysis[line[2]] = line
-                repeat = list()
                 for i in mark.keys():
                     if mark[i] > 1:
-                        repeat.append(analysis.pop(i))
-                for i in repeat:
-                    print(i)
-                    print('<----repeat')
-        for i in analysis.values():
+                        analysis.pop(i)
+        analysis = list(analysis.values())
+        analysis.sort(key=lambda i: i[2])
+        for i in analysis:
             print(i)
 
 
@@ -102,7 +101,7 @@ def main():
     else:
         db = arg.db
         query = set(fasta_files) - db
-    #db_name = makeblastdb(db)
+    # db_name = makeblastdb(db)
     db_name = db
     blast_result = list()
     for fasta in query:
