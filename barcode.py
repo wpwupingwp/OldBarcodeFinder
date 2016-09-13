@@ -54,32 +54,34 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
 
 
 def parse(blast_results, limit):
-    handle = open('stats.tmp', 'w')
     for blast_result in blast_results:
+        count = defaultdict(lambda: 0)
         result = SearchIO.parse(blast_result, 'blast-xml')
-        handle.write(
-            'query_id,hit_id,query_start,query_end,hit_start,hit_end,score\n')
         for query in result:
             for hit in query:
-                mark = dict()
+                mark = defaultdict(lambda: 0)
                 for hsp in hit:
-                    if hsp.bitscore >= limit:
-                        if hsp.query_start in mark:
-                            continue
-                        mark[hsp.query_start] = 1
-                        line = [hsp.query_id, hsp.hit_id, hsp.query_start,
-                                hsp.query_end, hsp.hit_start, hsp.hit_end,
-                                hsp.bitscore]
-                        line = [str(_) for _ in line]
-                        handle.write(','.join(line)+'\n')
-                        yield hsp.query_start, hsp.query_end, hsp.bitscore
-        handle.write(
-            '#############################################################\n')
+                    if hsp.query_end - hsp.query_start < limit:
+                        continue
+                    mark[hsp.query_start] += 1
+                    for i in range(hsp.query_start, hsp.query_end+1):
+                        count[i] += 1
+                    line = [hsp.query_id, hsp.hit_id, hsp.query_start,
+                            hsp.query_end, hsp.hit_start, hsp.hit_end,
+                            hsp.bitscore]
+                    line = [str(_) for _ in line]
+                for i in mark.keys():
+                    if mark[i] > 1:
+                        mark.pop(i)
+        for i in count.keys():
+            print(i, count[i])
 
 
 def main():
     """This program will try to find out single-copy barcode to devide
     different species while ignore distinction among subspecies level.
+    Notice that this program assuming that the sequence length of every record
+    in each input fasta file has little difference.
     """
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('-p', '--path', default='.',
@@ -105,15 +107,7 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
-    count = defaultdict(lambda: 0)
-    count_2 = defaultdict(lambda: 0)
-    for line in parse(blast_result, arg.min_length):
-        for n in range(line[0], line[1]+1):
-            count[n] += line[2]
-            count[n] += 1
-    print(len(count_2))
-    for i in count_2.keys():
-        print(i, count[i])
+    parse(blast_result, arg.min_length)
 
 
 if __name__ == '__main__':
