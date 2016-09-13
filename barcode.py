@@ -45,7 +45,7 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     """
     cmd = nb(num_threads=cpu_count(),
              query=query_file,
-             db=db_file,
+             subject=db_file,
              task='blastn',
              outfmt=5,
              out=output_file)
@@ -55,7 +55,7 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
 
 def parse(blast_results, limit):
     for blast_result in blast_results:
-        count = defaultdict(lambda: 0)
+        analysis = dict()
         result = SearchIO.parse(blast_result, 'blast-xml')
         for query in result:
             for hit in query:
@@ -64,17 +64,19 @@ def parse(blast_results, limit):
                     if hsp.query_end - hsp.query_start < limit:
                         continue
                     mark[hsp.query_start] += 1
-                    for i in range(hsp.query_start, hsp.query_end+1):
-                        count[i] += 1
                     line = [hsp.query_id, hsp.hit_id, hsp.query_start,
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
                             hsp.bitscore]
-                    line = [str(_) for _ in line]
+                    analysis[line[2]] = line
+                repeat = list()
                 for i in mark.keys():
                     if mark[i] > 1:
-                        mark.pop(i)
-        for i in count.keys():
-            print(i, count[i])
+                        repeat.append(analysis.pop(i))
+                for i in repeat:
+                    print(i)
+                    print('<----repeat')
+        for i in analysis.values():
+            print(i)
 
 
 def main():
@@ -88,11 +90,9 @@ def main():
                         help='target path, default is present directory')
     parser.add_argument('-d', '--db', default=None, help='''fasta file to make blast
     database, which contains longest sequence''')
-    parser.add_argument('-s', '--sample', default=5, type=int,
-                        help='sample numbers')
+    parser.add_argument('sample', default=5, type=int, help='sample numbers')
     parser.add_argument('-m', '--min_length', default=200, type=int,
                         help='minium barcode length')
-    parser.print_help()
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
     if arg.sample is not None:
@@ -102,7 +102,8 @@ def main():
     else:
         db = arg.db
         query = set(fasta_files) - db
-    db_name = makeblastdb(db)
+    #db_name = makeblastdb(db)
+    db_name = db
     blast_result = list()
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
