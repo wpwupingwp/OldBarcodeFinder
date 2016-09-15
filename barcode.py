@@ -51,19 +51,20 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     return output_file
 
 
-def parse(blast_results, length, samples):
+def parse(blast_results, length, samples, evalue):
     for blast_result in blast_results:
         raw = list()
         result = SearchIO.parse(blast_result, 'blast-xml')
         for query in result:
             for hit in query:
                 for hsp in hit:
-                    if hsp.query_end - hsp.query_start < length:
+                    hsp_query_length = hsp.query_end - hsp.query_start
+                    if hsp_query_length < length or hsp.evalue > evalue:
                         # if hsp.bitscore < length:
                         continue
                     line = [hsp.query_id, hsp.hit_id, hsp.query_start,
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
-                            hsp.bitscore]
+                            hsp.bitscore, hsp.evalue]
                     raw.append(line)
         query_start = [i[2] for i in raw]
         query_start = Counter(query_start)
@@ -97,7 +98,7 @@ def parse(blast_results, length, samples):
         raw = [i for i in raw if i[4] not in to_remove]
         raw.sort(key=lambda i: i[-1])
         for i in raw:
-            print(i[2], i[4], i[0], i[1], i[-1])
+            print(i[2], i[4], i[0], i[1], i[-2], i[-1])
 
 
 def main():
@@ -114,6 +115,8 @@ def main():
     parser.add_argument('sample', default=5, type=int, help='sample numbers')
     parser.add_argument('-m', '--min_length', default=200, type=int,
                         help='minium barcode length')
+    parser.add_argument('-e', '--evalue', default=1e-20, type=float,
+                        help='evalue for BLAST')
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
     if arg.sample is not None:
@@ -129,7 +132,7 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
-    parse(blast_result, arg.min_length, arg.sample)
+    parse(blast_result, arg.min_length, arg.sample, arg.evalue)
 
 
 if __name__ == '__main__':
