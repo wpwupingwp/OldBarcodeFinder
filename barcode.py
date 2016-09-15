@@ -66,39 +66,42 @@ def parse(blast_results, length, samples, evalue):
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
                             hsp.bitscore, hsp.evalue]
                     raw.append(line)
-        query_start = [i[2] for i in raw]
-        query_start = Counter(query_start)
-        hit_start = [i[4] for i in raw]
-        hit_start = Counter(hit_start)
-        to_remove = set()
-        tmp = list(query_start.keys())
-        tmp.sort()
-        for n, key in enumerate(tmp):
-            if query_start[key] != samples:
-                to_remove.add(key)
-            if n == 0:
-                continue
-            last_key = tmp[n-1]
-            if key - last_key < length:
-                to_remove.add(key)
-                to_remove.add(last_key)
-        raw = [i for i in raw if i[2] not in to_remove]
-        to_remove = set()
-        tmp = list(hit_start.keys())
-        tmp.sort()
-        for n, key in enumerate(tmp):
-            if hit_start[key] != samples:
-                to_remove.add(key)
-            if n == 0:
-                continue
-            last_key = tmp[n-1]
-            if key - last_key < length:
-                to_remove.add(key)
-                to_remove.add(last_key)
-        raw = [i for i in raw if i[4] not in to_remove]
-        raw.sort(key=lambda i: i[-1])
-        for i in raw:
-            print(i[2], i[4], i[0], i[1], i[-2], i[-1])
+    return raw
+
+
+def remove_multicopy(raw, length, samples):
+    query_start = [i[2] for i in raw]
+    query_start = Counter(query_start)
+    hit_start = [i[4] for i in raw]
+    hit_start = Counter(hit_start)
+    to_remove = set()
+    tmp = list(query_start.keys())
+    tmp.sort()
+    for n, key in enumerate(tmp):
+        if query_start[key] != samples:
+            to_remove.add(key)
+        if n == 0:
+            continue
+        last_key = tmp[n-1]
+        if key - last_key < length:
+            to_remove.add(key)
+            to_remove.add(last_key)
+    raw = [i for i in raw if i[2] not in to_remove]
+    to_remove = set()
+    tmp = list(hit_start.keys())
+    tmp.sort()
+    for n, key in enumerate(tmp):
+        if hit_start[key] != samples:
+            to_remove.add(key)
+        if n == 0:
+            continue
+        last_key = tmp[n-1]
+        if key - last_key < length:
+            to_remove.add(key)
+            to_remove.add(last_key)
+    raw = [i for i in raw if i[4] not in to_remove]
+    raw.sort(key=lambda i: i[-1])
+    return raw
 
 
 def main():
@@ -132,7 +135,10 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
-    parse(blast_result, arg.min_length, arg.sample, arg.evalue)
+    raw_result = parse(blast_result, arg.min_length, arg.sample, arg.evalue)
+    singlecopy = remove_multicopy(raw_result, arg.min_length, arg.sample)
+    for i in singlecopy:
+        print(i[2], i[4], i[0], i[1], i[-2], i[-1])
 
 
 if __name__ == '__main__':
