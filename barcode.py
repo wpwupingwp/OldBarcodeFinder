@@ -43,7 +43,7 @@ def makeblastdb(db_file):
 def blast(query_file, db_file, output_file='BLASTResult.xml'):
     cmd = nb(num_threads=cpu_count(),
              query=query_file,
-             subject=db_file,
+             db=db_file,
              task='blastn',
              outfmt=5,
              out=output_file)
@@ -104,6 +104,10 @@ def remove_multicopy(raw, length, samples):
     return raw
 
 
+def extract(singlecopy):
+    pass
+
+
 def main():
     """This program will try to find out single-copy barcode to devide
     different species while ignore distinction among subspecies level.
@@ -122,6 +126,7 @@ def main():
                         help='evalue for BLAST')
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
+    print(fasta_files)
     if arg.sample is not None:
         fasta_files = get_sample(fasta_files, arg.sample)
     if arg.db is None:
@@ -129,8 +134,8 @@ def main():
     else:
         db = arg.db
         query = set(fasta_files) - db
-    # db_name = makeblastdb(db)
-    db_name = db
+    db_name = makeblastdb(db)
+    # db_name = db
     blast_result = list()
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
