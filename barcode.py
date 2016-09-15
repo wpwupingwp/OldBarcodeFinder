@@ -41,8 +41,6 @@ def makeblastdb(db_file):
 
 
 def blast(query_file, db_file, output_file='BLASTResult.xml'):
-    """Here we use "max_hsps" to restrict only first hsp.
-    """
     cmd = nb(num_threads=cpu_count(),
              query=query_file,
              subject=db_file,
