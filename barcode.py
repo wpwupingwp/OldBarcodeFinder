@@ -70,15 +70,32 @@ def parse(blast_results, length, samples):
         hit_start = [i[4] for i in raw]
         hit_start = Counter(hit_start)
         to_remove = set()
-        for i in query_start.keys():
-            if query_start[i] != samples:
-                to_remove.add(i)
+        tmp = list(query_start.keys())
+        tmp.sort()
+        for n, key in enumerate(tmp):
+            if query_start[key] != samples:
+                to_remove.add(key)
+            if n == 0:
+                continue
+            last_key = tmp[n-1]
+            if key - last_key < length:
+                to_remove.add(key)
+                to_remove.add(last_key)
         raw = [i for i in raw if i[2] not in to_remove]
         to_remove = set()
-        for i in hit_start.keys():
-            if hit_start[i] != samples:
-                to_remove.add(i)
+        tmp = list(hit_start.keys())
+        tmp.sort()
+        for n, key in enumerate(tmp):
+            if hit_start[key] != samples:
+                to_remove.add(key)
+            if n == 0:
+                continue
+            last_key = tmp[n-1]
+            if key - last_key < length:
+                to_remove.add(key)
+                to_remove.add(last_key)
         raw = [i for i in raw if i[4] not in to_remove]
+        raw.sort(key=lambda i: i[-1])
         for i in raw:
             print(i[2], i[4], i[0], i[1], i[-1])
 
