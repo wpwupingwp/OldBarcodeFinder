@@ -58,8 +58,8 @@ def parse(blast_results, length, samples):
         for query in result:
             for hit in query:
                 for hsp in hit:
-                    # if hsp.query_end - hsp.query_start < limit:
-                    if hsp.bitscore < length:
+                    if hsp.query_end - hsp.query_start < length:
+                        # if hsp.bitscore < length:
                         continue
                     line = [hsp.query_id, hsp.hit_id, hsp.query_start,
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
@@ -71,12 +71,12 @@ def parse(blast_results, length, samples):
         hit_start = Counter(hit_start)
         to_remove = set()
         for i in query_start.keys():
-            if query_start[i] > samples:
+            if query_start[i] != samples:
                 to_remove.add(i)
         raw = [i for i in raw if i[2] not in to_remove]
         to_remove = set()
         for i in hit_start.keys():
-            if hit_start[i] > samples:
+            if hit_start[i] != samples:
                 to_remove.add(i)
         raw = [i for i in raw if i[4] not in to_remove]
         for i in raw:
