@@ -3,7 +3,7 @@
 import argparse
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
-from collections import defaultdict
+from collections import Counter
 from glob import glob
 from multiprocessing import cpu_count
 from subprocess import run
@@ -51,29 +51,36 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     return output_file
 
 
-def parse(blast_results, limit):
+def parse(blast_results, length, samples):
     for blast_result in blast_results:
-        analysis = dict()
+        raw = list()
         result = SearchIO.parse(blast_result, 'blast-xml')
         for query in result:
             for hit in query:
-                mark = defaultdict(lambda: 0)
                 for hsp in hit:
                     # if hsp.query_end - hsp.query_start < limit:
-                    if hsp.bitscore < limit:
+                    if hsp.bitscore < length:
                         continue
-                    mark[hsp.query_start] += 1
                     line = [hsp.query_id, hsp.hit_id, hsp.query_start,
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
                             hsp.bitscore]
-                    analysis[line[2]] = line
-                for i in mark.keys():
-                    if mark[i] > 1:
-                        analysis.pop(i)
-        analysis = list(analysis.values())
-        analysis.sort(key=lambda i: i[2])
-        for i in analysis:
-            print(i)
+                    raw.append(line)
+        query_start = [i[2] for i in raw]
+        query_start = Counter(query_start)
+        hit_start = [i[4] for i in raw]
+        hit_start = Counter(hit_start)
+        to_remove = set()
+        for i in query_start.keys():
+            if query_start[i] > samples:
+                to_remove.add(i)
+        raw = [i for i in raw if i[2] not in to_remove]
+        to_remove = set()
+        for i in hit_start.keys():
+            if hit_start[i] > samples:
+                to_remove.add(i)
+        raw = [i for i in raw if i[4] not in to_remove]
+        for i in raw:
+            print(i[2], i[4], i[0], i[1], i[-1])
 
 
 def main():
@@ -105,7 +112,7 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
-    parse(blast_result, arg.min_length)
+    parse(blast_result, arg.min_length, arg.sample)
 
 
 if __name__ == '__main__':
