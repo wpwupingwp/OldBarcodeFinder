@@ -60,7 +60,6 @@ def parse(blast_results, length, samples, evalue):
                 for hsp in hit:
                     hsp_query_length = hsp.query_end - hsp.query_start
                     if hsp_query_length < length or hsp.evalue > evalue:
-                        # if hsp.bitscore < length:
                         continue
                     line = [hsp.query, hsp.hit, hsp.query_start,
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
@@ -69,7 +68,7 @@ def parse(blast_results, length, samples, evalue):
     return raw
 
 
-def remove_multicopy(raw, length, samples):
+def remove_multicopy(raw, length, samples, strict):
     """raw:
     hsp.query, hsp.hit, hsp.query_start, hsp.query_end,
     hsp.hit_start, hsp.hit_end, hsp.bitscore, hsp.evalue
@@ -83,16 +82,18 @@ def remove_multicopy(raw, length, samples):
     for n, key in enumerate(tmp):
         if query_info[key] != 1:
             to_remove.add(key)
-    # raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format( i[0].id, i[1].id, i[2]) not in to_remove]
     hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[4]) for i in raw]
     hit_info = Counter(hit_info)
-    to_remove = set()
+    # to_remove = set()
     tmp = list(hit_info.keys())
     tmp.sort()
     for n, key in enumerate(tmp):
         if hit_info[key] != 1:
             to_remove.add(key)
+    # if strict:
+    #     count_info = [i[4] for i in raw]
+    #     count_info = Counter(count_info)
     singlecopy = list()
     for i in raw:
         if ('{0}SPLIT{1}SPLIT{2}'.format(
@@ -100,7 +101,6 @@ def remove_multicopy(raw, length, samples):
                 '{0}SPLIT{1}SPLIT{2}'.format(
                     i[0].id, i[1].id, i[2]) not in to_remove):
             singlecopy.append(i)
-    # raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format( i[0].id, i[1].id, i[3]) not in to_remove]
     singlecopy.sort(key=lambda i: i[4])
     return singlecopy
 
@@ -128,6 +128,8 @@ def main():
                         help='minium barcode length')
     parser.add_argument('-e', '--evalue', default=1e-20, type=float,
                         help='evalue for BLAST')
+    parser.add_argument('-s', '--strict', action='store_true',
+                        help='barcode location among subspecies must be same')
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
     if arg.sample is not None:
@@ -146,7 +148,8 @@ def main():
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
     raw_result = parse(blast_result, arg.min_length, arg.sample, arg.evalue)
-    singlecopy = remove_multicopy(raw_result, arg.min_length, arg.sample)
+    singlecopy = remove_multicopy(raw_result, arg.min_length,
+                                  arg.sample, arg.strict)
     for i in singlecopy:
         print(i[2], i[4], i[0].id, i[1].id)
 
