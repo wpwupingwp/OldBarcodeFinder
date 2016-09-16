@@ -51,21 +51,22 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     return output_file
 
 
-def parse(blast_result, length, samples, evalue):
+def parse(blast_result, **arg):
     raw = list()
     result = SearchIO.parse(blast_result, 'blast-xml')
     for query in result:
         for hit in query:
             for hsp in hit:
                 hsp_query_length = hsp.query_end - hsp.query_start
-                if hsp_query_length < length or hsp.evalue > evalue:
+                if (hsp_query_length < arg['length'] or
+                        hsp.evalue > arg['evalue']):
                     continue
                 line = [hsp.query, hsp.hit, hsp.query_start, hsp.hit_start]
                 raw.append(line)
     return raw
 
 
-def remove_multicopy(raw, length, samples, strict):
+def remove_multicopy(raw, **arg):
     """raw:
     hsp.query, hsp.hit, hsp.query_start, hsp.hit_start
     """
@@ -86,8 +87,8 @@ def remove_multicopy(raw, length, samples, strict):
     for n, key in enumerate(tmp):
         if hit_info[key] != 1:
             to_remove.add(key)
-    if strict:
-        limit = samples * samples
+    if arg['strict']:
+        limit = arg['sample'] ** 2
         count_info = [i[3] for i in raw]
         count_info = Counter(count_info)
         for hit in count_info.keys():
@@ -117,11 +118,13 @@ def extract(query_file, singlecopy):
         SeqIO.write(query_to_blast, query_output, 'fasta')
         query_blast_result = blast(query_output, query_db,
                                    query_output.replace('.fasta', 'xml'))
+        query_seq = parse(query_blast_result)
         # hit only extract once
-        if n == 0:
-            hit_to_blast = hits[hit][0][1].seq
-            hit_output = 'hit-{0}.fasta'.format(n)
-            SeqIO.write(hit_to_blast, hit_output, 'fasta')
+        if n != 0:
+            continue
+        hit_to_blast = hits[hit][0][1].seq
+        hit_output = 'hit-{0}.fasta'.format(n)
+        SeqIO.write(hit_to_blast, hit_output, 'fasta')
         pass
 
 
@@ -139,19 +142,20 @@ def main():
                         help='target path, default is present directory')
     parser.add_argument('-d', '--db', default=None, help='''fasta file to make blast
     database, which contains longest sequence''')
-    parser.add_argument('-m', '--min_length', default=200, type=int,
+    parser.add_argument('-l', '--length', default=200, type=int,
                         help='minium barcode length')
     parser.add_argument('-e', '--evalue', default=1e-20, type=float,
                         help='evalue for BLAST')
     parser.add_argument('-s', '--strict', action='store_false',
                         help='barcode location among subspecies must be same')
     arg = parser.parse_args()
-    fasta_files = glob(arg.path+'/*.fasta')
-    fasta_files = get_sample(fasta_files, arg.sample)
-    if arg.db is None:
+    arg = vars(arg)
+    fasta_files = glob(arg['path']+'/*.fasta')
+    fasta_files = get_sample(fasta_files, arg['sample'])
+    if arg['db'] is None:
         *query, db = find_longest(fasta_files)
     else:
-        db = arg.db
+        db = arg[db]
         query = set(fasta_files) - db
     db_name = makeblastdb(db)
     blast_result = list()
@@ -159,9 +163,8 @@ def main():
         result_file = fasta.replace('.fasta', '.xml')
         blast_result = blast(fasta, db_name, result_file)
     # to be continue
-    raw_result = parse(blast_result, arg.min_length, arg.sample, arg.evalue)
-    singlecopy = remove_multicopy(raw_result, arg.min_length,
-                                  arg.sample, arg.strict)
+    raw_result = parse(blast_result, **arg)
+    singlecopy = remove_multicopy(raw_result, **arg)
     for i in singlecopy:
         print(i)
 
