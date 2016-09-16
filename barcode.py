@@ -123,7 +123,7 @@ def main():
                         help='target path, default is present directory')
     parser.add_argument('-d', '--db', default=None, help='''fasta file to make blast
     database, which contains longest sequence''')
-    parser.add_argument('sample', default=5, type=int, help='sample numbers')
+    parser.add_argument('sample', type=int, help='sample numbers')
     parser.add_argument('-m', '--min_length', default=200, type=int,
                         help='minium barcode length')
     parser.add_argument('-e', '--evalue', default=1e-20, type=float,
