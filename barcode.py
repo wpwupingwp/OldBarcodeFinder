@@ -70,10 +70,12 @@ def parse(blast_results, length, samples, evalue):
 
 
 def remove_multicopy(raw, length, samples):
+    """raw:
+    hsp.query_id, hsp.hit_id, hsp.query_start, hsp.query_end,
+    hsp.hit_start, hsp.hit_end, hsp.bitscore, hsp.evalue
+    """
     query_start = [i[2] for i in raw]
     query_start = Counter(query_start)
-    hit_start = [i[4] for i in raw]
-    hit_start = Counter(hit_start)
     to_remove = set()
     tmp = list(query_start.keys())
     tmp.sort()
@@ -87,6 +89,8 @@ def remove_multicopy(raw, length, samples):
             to_remove.add(key)
             to_remove.add(last_key)
     raw = [i for i in raw if i[2] not in to_remove]
+    hit_start = [i[4] for i in raw]
+    hit_start = Counter(hit_start)
     to_remove = set()
     tmp = list(hit_start.keys())
     tmp.sort()
@@ -126,7 +130,6 @@ def main():
                         help='evalue for BLAST')
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
-    print(fasta_files)
     if arg.sample is not None:
         fasta_files = get_sample(fasta_files, arg.sample)
     if arg.db is None:
