@@ -74,45 +74,31 @@ def remove_multicopy(raw, length, samples):
     hsp.query, hsp.hit, hsp.query_start, hsp.query_end,
     hsp.hit_start, hsp.hit_end, hsp.bitscore, hsp.evalue
     """
-    # query_info = [[i[0].id, i[1].id, i[2], i[4]] for i in raw]
-    query_start = list()
-    for record in raw:
-        info = '{0}SPLIT{1}SPLIT{2}'.format(record[2], record[0].id,
-                                            record[1].id)
-        query_start.append(info)
-    query_start = Counter(query_start)
-    print(query_start)
+    query_info = ['{0}SPLIT{1}SPLIT{2}'.format(
+        i[0].id, i[1].id, i[2]) for i in raw]
+    query_info = Counter(query_info)
+    print(query_info)
     to_remove = set()
-    tmp = list(query_start.keys())
+    tmp = list(query_info.keys())
     tmp.sort()
     for n, key in enumerate(tmp):
         # to be continue
-        if query_start[key] != 1:
+        if query_info[key] != 1:
             to_remove.add(key)
-        if n == 0:
-            continue
-        last_key = int(tmp[n-1].split(sep='SPLIT')[0])
-        if int(key.split(sep='SPLIT')[0]) - last_key < length:
-            to_remove.add(key)
-            to_remove.add(last_key)
-    raw = [i for i in raw if '{0}SPLIT{1}'.format(
-        record[2], record[0].id) not in to_remove]
-    hit_start = [i[4] for i in raw]
-    hit_start = Counter(hit_start)
-    print(hit_start)
+    raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format(
+        i[0].id, i[1].id, i[2]) not in to_remove]
+    hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
+        i[0].id, i[1].id, i[3]) for i in raw]
+    hit_info = Counter(hit_info)
+    print(hit_info)
     to_remove = set()
-    tmp = list(hit_start.keys())
+    tmp = list(hit_info.keys())
     tmp.sort()
     for n, key in enumerate(tmp):
-        if hit_start[key] != samples:
+        if hit_info[key] != 1:
             to_remove.add(key)
-        if n == 0:
-            continue
-        last_key = tmp[n-1]
-        if key - last_key < length:
-            to_remove.add(key)
-            to_remove.add(last_key)
-    raw = [i for i in raw if i[4] not in to_remove]
+    raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format(
+        i[0].id, i[1].id, i[3]) not in to_remove]
     raw.sort(key=lambda i: i[-1])
     return raw
 
