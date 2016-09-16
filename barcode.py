@@ -62,7 +62,7 @@ def parse(blast_results, length, samples, evalue):
                     if hsp_query_length < length or hsp.evalue > evalue:
                         # if hsp.bitscore < length:
                         continue
-                    line = [hsp.query_id, hsp.hit_id, hsp.query_start,
+                    line = [hsp.query, hsp.hit, hsp.query_start,
                             hsp.query_end, hsp.hit_start, hsp.hit_end,
                             hsp.bitscore, hsp.evalue]
                     raw.append(line)
@@ -146,7 +146,7 @@ def main():
     raw_result = parse(blast_result, arg.min_length, arg.sample, arg.evalue)
     singlecopy = remove_multicopy(raw_result, arg.min_length, arg.sample)
     for i in singlecopy:
-        print(i[2], i[4], i[0], i[1], i[-2], i[-1])
+        print(i[2], i[4], i[0].id, i[1].id, i[-2], i[-1])
 
 
 if __name__ == '__main__':
