@@ -51,18 +51,17 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     return output_file
 
 
-def parse(blast_results, length, samples, evalue):
-    for blast_result in blast_results:
-        raw = list()
-        result = SearchIO.parse(blast_result, 'blast-xml')
-        for query in result:
-            for hit in query:
-                for hsp in hit:
-                    hsp_query_length = hsp.query_end - hsp.query_start
-                    if hsp_query_length < length or hsp.evalue > evalue:
-                        continue
-                    line = [hsp.query, hsp.hit, hsp.query_start, hsp.hit_start]
-                    raw.append(line)
+def parse(blast_result, length, samples, evalue):
+    raw = list()
+    result = SearchIO.parse(blast_result, 'blast-xml')
+    for query in result:
+        for hit in query:
+            for hsp in hit:
+                hsp_query_length = hsp.query_end - hsp.query_start
+                if hsp_query_length < length or hsp.evalue > evalue:
+                    continue
+                line = [hsp.query, hsp.hit, hsp.query_start, hsp.hit_start]
+                raw.append(line)
     return raw
 
 
@@ -106,17 +105,30 @@ def remove_multicopy(raw, length, samples, strict):
     return singlecopy
 
 
-def extract(singlecopy):
+def extract(query_file, singlecopy):
+    query_db = makeblastdb(query_file)
     hits = defaultdict(lambda: list())
     for record in singlecopy:
-        hits[record[3]].append(record[0])
-    for hit in hits.keys():
+        hits[record[3]].append(record[0:2])
+    for n, hit in enumerate(hits.keys()):
+        # only use first record
+        query_to_blast = hits[hit][0][0]
+        query_output = 'query-{0}.fasta'.format(n)
+        SeqIO.write(query_to_blast, query_output, 'fasta')
+        query_blast_result = blast(query_output, query_db,
+                                   query_output.replace('.fasta', 'xml'))
+        # hit only extract once
+        if n == 0:
+            hit_to_blast = hits[hit][0][1].seq
+            hit_output = 'hit-{0}.fasta'.format(n)
+            SeqIO.write(hit_to_blast, hit_output, 'fasta')
         pass
 
 
 def main():
     """This program will try to find out single-copy barcode to devide
-    different species while ignore distinction among subspecies level.
+    different species in given two fasta files while ignore distinction
+    among subspecies level.
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
