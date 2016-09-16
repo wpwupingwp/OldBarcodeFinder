@@ -61,17 +61,14 @@ def parse(blast_results, length, samples, evalue):
                     hsp_query_length = hsp.query_end - hsp.query_start
                     if hsp_query_length < length or hsp.evalue > evalue:
                         continue
-                    line = [hsp.query, hsp.hit, hsp.query_start,
-                            hsp.query_end, hsp.hit_start, hsp.hit_end,
-                            hsp.bitscore, hsp.evalue]
+                    line = [hsp.query, hsp.hit, hsp.query_start, hsp.hit_start]
                     raw.append(line)
     return raw
 
 
 def remove_multicopy(raw, length, samples, strict):
     """raw:
-    hsp.query, hsp.hit, hsp.query_start, hsp.query_end,
-    hsp.hit_start, hsp.hit_end, hsp.bitscore, hsp.evalue
+    hsp.query, hsp.hit, hsp.query_start, hsp.hit_start
     """
     query_info = ['{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[2]) for i in raw]
@@ -83,7 +80,7 @@ def remove_multicopy(raw, length, samples, strict):
         if query_info[key] != 1:
             to_remove.add(key)
     hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
-        i[0].id, i[1].id, i[4]) for i in raw]
+        i[0].id, i[1].id, i[3]) for i in raw]
     hit_info = Counter(hit_info)
     tmp = list(hit_info.keys())
     tmp.sort()
@@ -92,20 +89,20 @@ def remove_multicopy(raw, length, samples, strict):
             to_remove.add(key)
     if strict:
         limit = samples * samples
-        count_info = [i[4] for i in raw]
+        count_info = [i[3] for i in raw]
         count_info = Counter(count_info)
         for hit in count_info.keys():
             if count_info[hit] < limit:
                 to_remove.add(hit)
     singlecopy = list()
     for i in raw:
-        if (i[4] not in to_remove and
+        if (i[3] not in to_remove and
                 ('{0}SPLIT{1}SPLIT{2}'.format(
-                    i[0].id, i[1].id, i[4]) not in to_remove and
+                    i[0].id, i[1].id, i[3]) not in to_remove and
                  '{0}SPLIT{1}SPLIT{2}'.format(
                      i[0].id, i[1].id, i[2]) not in to_remove)):
             singlecopy.append(i)
-    singlecopy.sort(key=lambda i: i[4])
+    singlecopy.sort(key=lambda i: i[3])
     return singlecopy
 
 
@@ -122,7 +119,7 @@ def main():
     in each input fasta file has slight difference.
     """
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument('sample', default=None, type=int,
+    parser.add_argument('sample', default=15, type=int,
                         help='sample numbers')
     parser.add_argument('-p', '--path', default='.',
                         help='target path, default is present directory')
@@ -136,11 +133,7 @@ def main():
                         help='barcode location among subspecies must be same')
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
-    if arg.sample is not None:
-        fasta_files = get_sample(fasta_files, arg.sample)
-    else:
-        parser.print_help()
-        return
+    fasta_files = get_sample(fasta_files, arg.sample)
     if arg.db is None:
         *query, db = find_longest(fasta_files)
     else:
@@ -155,7 +148,7 @@ def main():
     singlecopy = remove_multicopy(raw_result, arg.min_length,
                                   arg.sample, arg.strict)
     for i in singlecopy:
-        print(i[2], i[4], i[0].id, i[1].id)
+        print(i)
 
 
 if __name__ == '__main__':
