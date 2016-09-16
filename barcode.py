@@ -85,21 +85,25 @@ def remove_multicopy(raw, length, samples, strict):
     hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[4]) for i in raw]
     hit_info = Counter(hit_info)
-    # to_remove = set()
     tmp = list(hit_info.keys())
     tmp.sort()
     for n, key in enumerate(tmp):
         if hit_info[key] != 1:
             to_remove.add(key)
-    # if strict:
-    #     count_info = [i[4] for i in raw]
-    #     count_info = Counter(count_info)
+    if strict:
+        limit = samples * samples
+        count_info = [i[4] for i in raw]
+        count_info = Counter(count_info)
+        for hit in count_info.keys():
+            if count_info[hit] < limit:
+                to_remove.add(hit)
     singlecopy = list()
     for i in raw:
-        if ('{0}SPLIT{1}SPLIT{2}'.format(
-                i[0].id, i[1].id, i[4]) not in to_remove and
-                '{0}SPLIT{1}SPLIT{2}'.format(
-                    i[0].id, i[1].id, i[2]) not in to_remove):
+        if (i[4] not in to_remove and
+                ('{0}SPLIT{1}SPLIT{2}'.format(
+                    i[0].id, i[1].id, i[4]) not in to_remove and
+                 '{0}SPLIT{1}SPLIT{2}'.format(
+                     i[0].id, i[1].id, i[2]) not in to_remove)):
             singlecopy.append(i)
     singlecopy.sort(key=lambda i: i[4])
     return singlecopy
@@ -128,7 +132,7 @@ def main():
                         help='minium barcode length')
     parser.add_argument('-e', '--evalue', default=1e-20, type=float,
                         help='evalue for BLAST')
-    parser.add_argument('-s', '--strict', action='store_true',
+    parser.add_argument('-s', '--strict', action='store_false',
                         help='barcode location among subspecies must be same')
     arg = parser.parse_args()
     fasta_files = glob(arg.path+'/*.fasta')
