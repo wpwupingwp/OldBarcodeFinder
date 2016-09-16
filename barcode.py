@@ -77,12 +77,10 @@ def remove_multicopy(raw, length, samples):
     query_info = ['{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[2]) for i in raw]
     query_info = Counter(query_info)
-    print(query_info)
     to_remove = set()
     tmp = list(query_info.keys())
     tmp.sort()
     for n, key in enumerate(tmp):
-        # to be continue
         if query_info[key] != 1:
             to_remove.add(key)
     raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format(
@@ -90,7 +88,6 @@ def remove_multicopy(raw, length, samples):
     hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[3]) for i in raw]
     hit_info = Counter(hit_info)
-    print(hit_info)
     to_remove = set()
     tmp = list(hit_info.keys())
     tmp.sort()
