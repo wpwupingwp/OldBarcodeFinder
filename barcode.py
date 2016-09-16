@@ -71,26 +71,33 @@ def parse(blast_results, length, samples, evalue):
 
 def remove_multicopy(raw, length, samples):
     """raw:
-    hsp.query_id, hsp.hit_id, hsp.query_start, hsp.query_end,
+    hsp.query, hsp.hit, hsp.query_start, hsp.query_end,
     hsp.hit_start, hsp.hit_end, hsp.bitscore, hsp.evalue
     """
-    query_start = [i[2] for i in raw]
+    query_start = list()
+    for record in raw:
+        info = '{0}SPLIT{1}'.format(record[2], record[0].id)
+        query_start.append(info)
     query_start = Counter(query_start)
+    print(query_start)
     to_remove = set()
     tmp = list(query_start.keys())
     tmp.sort()
     for n, key in enumerate(tmp):
-        if query_start[key] != samples:
+        # to be continue
+        if query_start[key] > samples:
             to_remove.add(key)
         if n == 0:
             continue
-        last_key = tmp[n-1]
-        if key - last_key < length:
+        last_key = int(tmp[n-1].split(sep='SPLIT')[0])
+        if int(key.split(sep='SPLIT')[0]) - last_key < length:
             to_remove.add(key)
             to_remove.add(last_key)
-    raw = [i for i in raw if i[2] not in to_remove]
+    raw = [i for i in raw if '{0}SPLIT{1}'.format(
+        record[2], record[0].id) not in to_remove]
     hit_start = [i[4] for i in raw]
     hit_start = Counter(hit_start)
+    print(hit_start)
     to_remove = set()
     tmp = list(hit_start.keys())
     tmp.sort()
@@ -109,7 +116,9 @@ def remove_multicopy(raw, length, samples):
 
 
 def extract(singlecopy):
-    pass
+    hits = set(i[1] for i in singlecopy)
+    for hit in hits:
+        pass
 
 
 def main():
@@ -119,11 +128,12 @@ def main():
     in each input fasta file has little difference.
     """
     parser = argparse.ArgumentParser(description=main.__doc__)
+    parser.add_argument('sample', default=None, type=int,
+                        help='sample numbers')
     parser.add_argument('-p', '--path', default='.',
                         help='target path, default is present directory')
     parser.add_argument('-d', '--db', default=None, help='''fasta file to make blast
     database, which contains longest sequence''')
-    parser.add_argument('sample', type=int, help='sample numbers')
     parser.add_argument('-m', '--min_length', default=200, type=int,
                         help='minium barcode length')
     parser.add_argument('-e', '--evalue', default=1e-20, type=float,
@@ -132,6 +142,9 @@ def main():
     fasta_files = glob(arg.path+'/*.fasta')
     if arg.sample is not None:
         fasta_files = get_sample(fasta_files, arg.sample)
+    else:
+        parser.print_help()
+        return
     if arg.db is None:
         *query, db = find_longest(fasta_files)
     else:
