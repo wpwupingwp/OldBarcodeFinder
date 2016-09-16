@@ -74,9 +74,11 @@ def remove_multicopy(raw, length, samples):
     hsp.query, hsp.hit, hsp.query_start, hsp.query_end,
     hsp.hit_start, hsp.hit_end, hsp.bitscore, hsp.evalue
     """
+    # query_info = [[i[0].id, i[1].id, i[2], i[4]] for i in raw]
     query_start = list()
     for record in raw:
-        info = '{0}SPLIT{1}'.format(record[2], record[0].id)
+        info = '{0}SPLIT{1}SPLIT{2}'.format(record[2], record[0].id,
+                                            record[1].id)
         query_start.append(info)
     query_start = Counter(query_start)
     print(query_start)
@@ -85,7 +87,7 @@ def remove_multicopy(raw, length, samples):
     tmp.sort()
     for n, key in enumerate(tmp):
         # to be continue
-        if query_start[key] > samples:
+        if query_start[key] != 1:
             to_remove.add(key)
         if n == 0:
             continue
