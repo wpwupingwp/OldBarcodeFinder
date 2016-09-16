@@ -96,7 +96,7 @@ def remove_multicopy(raw, length, samples):
             to_remove.add(key)
     raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[3]) not in to_remove]
-    raw.sort(key=lambda i: i[-1])
+    raw.sort(key=lambda i: i[0])
     return raw
 
 
@@ -110,7 +110,7 @@ def main():
     """This program will try to find out single-copy barcode to devide
     different species while ignore distinction among subspecies level.
     Notice that this program assuming that the sequence length of every record
-    in each input fasta file has little difference.
+    in each input fasta file has slight difference.
     """
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('sample', default=None, type=int,
@@ -136,7 +136,6 @@ def main():
         db = arg.db
         query = set(fasta_files) - db
     db_name = makeblastdb(db)
-    # db_name = db
     blast_result = list()
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
