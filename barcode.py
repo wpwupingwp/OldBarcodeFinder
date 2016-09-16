@@ -157,7 +157,7 @@ def main():
     blast_result = list()
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
-        blast_result.append(blast(fasta, db_name, result_file))
+        blast_result = blast(fasta, db_name, result_file)
     # to be continue
     raw_result = parse(blast_result, arg.min_length, arg.sample, arg.evalue)
     singlecopy = remove_multicopy(raw_result, arg.min_length,
