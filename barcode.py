@@ -83,10 +83,9 @@ def remove_multicopy(raw, length, samples):
     for n, key in enumerate(tmp):
         if query_info[key] != 1:
             to_remove.add(key)
-    raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format(
-        i[0].id, i[1].id, i[2]) not in to_remove]
+    # raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format( i[0].id, i[1].id, i[2]) not in to_remove]
     hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
-        i[0].id, i[1].id, i[3]) for i in raw]
+        i[0].id, i[1].id, i[4]) for i in raw]
     hit_info = Counter(hit_info)
     to_remove = set()
     tmp = list(hit_info.keys())
@@ -94,10 +93,16 @@ def remove_multicopy(raw, length, samples):
     for n, key in enumerate(tmp):
         if hit_info[key] != 1:
             to_remove.add(key)
-    raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format(
-        i[0].id, i[1].id, i[3]) not in to_remove]
-    raw.sort(key=lambda i: i[0])
-    return raw
+    singlecopy = list()
+    for i in raw:
+        if ('{0}SPLIT{1}SPLIT{2}'.format(
+                i[0].id, i[1].id, i[4]) not in to_remove and
+                '{0}SPLIT{1}SPLIT{2}'.format(
+                    i[0].id, i[1].id, i[2]) not in to_remove):
+            singlecopy.append(i)
+    # raw = [i for i in raw if '{0}SPLIT{1}SPLIT{2}'.format( i[0].id, i[1].id, i[3]) not in to_remove]
+    singlecopy.sort(key=lambda i: i[4])
+    return singlecopy
 
 
 def extract(singlecopy):
@@ -143,7 +148,7 @@ def main():
     raw_result = parse(blast_result, arg.min_length, arg.sample, arg.evalue)
     singlecopy = remove_multicopy(raw_result, arg.min_length, arg.sample)
     for i in singlecopy:
-        print(i[2], i[4], i[0].id, i[1].id, i[-2], i[-1])
+        print(i[2], i[4], i[0].id, i[1].id)
 
 
 if __name__ == '__main__':
