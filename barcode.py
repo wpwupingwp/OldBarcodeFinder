@@ -3,7 +3,7 @@
 import argparse
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
-from collections import Counter
+from collections import Counter, defaultdict
 from glob import glob
 from multiprocessing import cpu_count
 from subprocess import run
@@ -107,8 +107,10 @@ def remove_multicopy(raw, length, samples, strict):
 
 
 def extract(singlecopy):
-    hits = set(i[1] for i in singlecopy)
-    for hit in hits:
+    hits = defaultdict(lambda: list())
+    for record in singlecopy:
+        hits[record[3]].append(record[0])
+    for hit in hits.keys():
         pass
 
 
@@ -144,6 +146,7 @@ def main():
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result.append(blast(fasta, db_name, result_file))
+    # to be continue
     raw_result = parse(blast_result, arg.min_length, arg.sample, arg.evalue)
     singlecopy = remove_multicopy(raw_result, arg.min_length,
                                   arg.sample, arg.strict)
