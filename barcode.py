@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import os
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
 from collections import Counter, defaultdict
@@ -103,7 +104,7 @@ def remove_multicopy(raw):
     return singlecopy
 
 
-def extract(query_file, singlecopy):
+def extract(query_file, db_file, singlecopy):
     query_db = makeblastdb(query_file+'.fasta')
     hits = defaultdict(lambda: list())
     for record in singlecopy:
@@ -111,23 +112,23 @@ def extract(query_file, singlecopy):
     for n, hit in enumerate(hits.keys()):
         # only use first record
         hit_to_blast = hits[hit][0][1]
-        hit_sample = 'hit-{0}.fas'.format(n)
+        hit_sample = 'out/hit-{0}.fas'.format(n)
         SeqIO.write(hit_to_blast, hit_sample, 'fasta')
-        hit_blast_result = blast(hit_sample, query_db,
+        hit_blast_result = blast(hit_sample, db_file,
                                  hit_sample.replace('.fas', '.xml'))
         hit_seq = parse(hit_blast_result)
         hit_seq = [i[1] for i in hit_seq]
         query_to_blast = hits[hit][0][0]
-        query_sample = 'query-{0}.fas'.format(n)
+        query_sample = 'out/query-{0}.fas'.format(n)
         SeqIO.write(query_to_blast, query_sample, 'fasta')
         query_blast_result = blast(query_sample, query_db,
                                    query_sample.replace('.fas', '.xml'))
         query_seq = parse(query_blast_result)
         query_seq = [i[1] for i in query_seq]
-        merge = hit_seq + query_seq
+        merge = query_seq + hit_seq
         print(query_seq.__len__(), hit_seq.__len__(), merge.__len__())
         # to be continue
-        merge_output = 'barcode-{0}-{1}.fasta'.format(
+        merge_output = 'out/{0}-{1}.barcode'.format(
             query_file.replace('/', '_'), n)
         SeqIO.write(merge, merge_output, 'fasta')
 
@@ -154,6 +155,8 @@ def main():
                         help='barcode location among subspecies must be same')
     global arg
     arg = parser.parse_args()
+    if not os._exists('out'):
+        os.mkdir('out')
     fasta_files = glob(arg.path+'/*.fasta')
     fasta_files = {get_sample(i, arg.sample): i.replace(
         '.fasta', '') for i in fasta_files}
@@ -171,7 +174,7 @@ def main():
     # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
-        extract(fasta_files[fasta], singlecopy)
+        extract(fasta_files[fasta], fasta_files[db], singlecopy)
         # for i in singlecopy:
         #     print(i)
 
