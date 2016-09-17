@@ -1,12 +1,12 @@
 #!/usr/bin/python3
 
 import argparse
-import os
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
 from collections import Counter, defaultdict
 from glob import glob
 from multiprocessing import cpu_count
+from os import path, mkdir
 from subprocess import run
 
 
@@ -23,7 +23,8 @@ def find_longest(fasta_files):
 
 
 def get_sample(fasta, target):
-    output = fasta.replace('.fasta', '_{0}.fasta'.format(target))
+    output = path.join(arg.output,
+                       '{0}-{1}'.format(target, path.basename(fasta)))
     raw = SeqIO.parse(fasta, 'fasta')
     with open(output, 'w') as output_file:
         for n in range(target):
@@ -105,31 +106,34 @@ def remove_multicopy(raw):
 
 
 def extract(query_file, db_file, singlecopy):
-    query_db = makeblastdb(query_file+'.fasta')
+    query_db = makeblastdb(query_file)
+    hit_db = makeblastdb(db_file)
     hits = defaultdict(lambda: list())
     for record in singlecopy:
         hits[record[3]].append(record[0:2])
     for n, hit in enumerate(hits.keys()):
         # only use first record
         hit_to_blast = hits[hit][0][1]
-        hit_sample = 'out/hit-{0}.fas'.format(n)
+        hit_sample = path.join(arg.output, 'hit-{0}.fasta'.format(n))
         SeqIO.write(hit_to_blast, hit_sample, 'fasta')
-        hit_blast_result = blast(hit_sample, db_file,
-                                 hit_sample.replace('.fas', '.xml'))
+        hit_blast_result = blast(hit_sample, hit_db,
+                                 hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
         hit_seq = [i[1] for i in hit_seq]
         query_to_blast = hits[hit][0][0]
-        query_sample = 'out/query-{0}.fas'.format(n)
+        query_sample = path.join(arg.output, 'query-{0}.fasta'.format(n))
         SeqIO.write(query_to_blast, query_sample, 'fasta')
         query_blast_result = blast(query_sample, query_db,
-                                   query_sample.replace('.fas', '.xml'))
+                                   query_sample.replace('.fasta', '.xml'))
         query_seq = parse(query_blast_result)
         query_seq = [i[1] for i in query_seq]
         merge = query_seq + hit_seq
         print(query_seq.__len__(), hit_seq.__len__(), merge.__len__())
         # to be continue
-        merge_output = 'out/{0}-{1}.barcode'.format(
-            query_file.replace('/', '_'), n)
+        query_file_short = path.basename(query_file)
+        merge_output = path.join(
+            arg.output,
+            'barcode-{0}-{1}'.format(n, query_file_short))
         SeqIO.write(merge, merge_output, 'fasta')
 
 
@@ -153,13 +157,13 @@ def main():
                         help='evalue for BLAST')
     parser.add_argument('-s', '--strict', action='store_false',
                         help='barcode location among subspecies must be same')
+    parser.add_argument('-o', '--output', default='out', help='output path')
     global arg
     arg = parser.parse_args()
-    if not os._exists('out'):
-        os.mkdir('out')
-    fasta_files = glob(arg.path+'/*.fasta')
-    fasta_files = {get_sample(i, arg.sample): i.replace(
-        '.fasta', '') for i in fasta_files}
+    if not path.exists(arg.output):
+        mkdir(arg.output)
+    fasta_files = glob(path.join(arg.path, '*.fasta'))
+    fasta_files = {get_sample(i, arg.sample): i for i in fasta_files}
     fasta_files_sample = [i for i in fasta_files.keys()]
     if arg.db is None:
         *query, db = find_longest(fasta_files_sample)
