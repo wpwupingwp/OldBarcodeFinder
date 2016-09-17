@@ -73,17 +73,13 @@ def remove_multicopy(raw):
         i[0].id, i[1].id, i[2]) for i in raw]
     query_info = Counter(query_info)
     to_remove = set()
-    tmp = list(query_info.keys())
-    tmp.sort()
-    for n, key in enumerate(tmp):
+    for key in query_info.keys():
         if query_info[key] != 1:
             to_remove.add(key)
     hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[3]) for i in raw]
     hit_info = Counter(hit_info)
-    tmp = list(hit_info.keys())
-    tmp.sort()
-    for n, key in enumerate(tmp):
+    for key in hit_info.keys():
         if hit_info[key] != 1:
             to_remove.add(key)
     if arg.strict:
@@ -179,8 +175,6 @@ def main():
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
         extract(fasta_files[fasta], fasta_files[db], singlecopy)
-        # for i in singlecopy:
-        #     print(i)
 
 
 if __name__ == '__main__':
