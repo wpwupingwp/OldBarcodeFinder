@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 
 import argparse
+import sys
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
-from collections import Counter, defaultdict
+from collections import Counter
 from glob import glob
 from multiprocessing import cpu_count
 from os import path, mkdir
@@ -101,36 +102,31 @@ def remove_multicopy(raw):
     return singlecopy
 
 
-def extract(query_file, db_file, singlecopy):
-    query_db = makeblastdb(query_file)
-    hit_db = makeblastdb(db_file)
-    hits = defaultdict(lambda: list())
+def extract(db_file, singlecopy):
+    """Extract barcode sequence with BLAST against merged query files to
+    ensure the validation of the barcode.
+    """
+    barcode = list()
+    db = makeblastdb(db_file)
+    hits = dict()
     for record in singlecopy:
-        hits[record[3]].append(record[0:2])
-    for n, hit in enumerate(hits.keys()):
+        hits[record[3]] = record[0]
+    n = 1
+    for hit in hits.keys():
         # only use first record
-        hit_to_blast = hits[hit][0][1]
+        hit_to_blast = hits[hit]
         hit_sample = path.join(arg.output, 'hit-{0}.fasta'.format(n))
         SeqIO.write(hit_to_blast, hit_sample, 'fasta')
-        hit_blast_result = blast(hit_sample, hit_db,
+        hit_blast_result = blast(hit_sample, db,
                                  hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
         hit_seq = [i[1] for i in hit_seq]
-        query_to_blast = hits[hit][0][0]
-        query_sample = path.join(arg.output, 'query-{0}.fasta'.format(n))
-        SeqIO.write(query_to_blast, query_sample, 'fasta')
-        query_blast_result = blast(query_sample, query_db,
-                                   query_sample.replace('.fasta', '.xml'))
-        query_seq = parse(query_blast_result)
-        query_seq = [i[1] for i in query_seq]
-        merge = query_seq + hit_seq
-        print(query_seq.__len__(), hit_seq.__len__(), merge.__len__())
         # to be continue
-        query_file_short = path.basename(query_file)
-        merge_output = path.join(
-            arg.output,
-            'barcode-{0}-{1}'.format(n, query_file_short))
-        SeqIO.write(merge, merge_output, 'fasta')
+        barcode_output = path.join(arg.output, 'barcode-{0}.fasta'.format(n))
+        barcode.append(barcode_output)
+        SeqIO.write(hit_seq, barcode_output, 'fasta')
+        n += 1
+    return barcode
 
 
 def main():
@@ -140,6 +136,7 @@ def main():
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
+    sys.stderr = open('barcode.err', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('sample', default=15, type=int,
                         help='sample numbers')
@@ -159,6 +156,11 @@ def main():
     if not path.exists(arg.output):
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
+    merge_file = path.join(arg.path, 'merge.fasta')
+    with open(merge_file, 'w') as merge:
+        for fasta in fasta_files:
+            with open(fasta, 'r') as f:
+                merge.write(f.read())
     fasta_files = {get_sample(i, arg.sample): i for i in fasta_files}
     fasta_files_sample = [i for i in fasta_files.keys()]
     if arg.db is None:
@@ -174,7 +176,7 @@ def main():
     # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
-        extract(fasta_files[fasta], fasta_files[db], singlecopy)
+        extract(merge_file, singlecopy)
 
 
 if __name__ == '__main__':
