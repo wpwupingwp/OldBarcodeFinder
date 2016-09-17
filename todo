@@ -1,10 +1,11 @@
 #1. count frequency of fragments
 #2.There are some rare match still stayed
 #3. uniq
-4. extract
+#4. extract
 5. mafft
 6. tree
-7. iterate
-8. hsp.query/hsp.hit may use more memory
+#7. iterate
+#8. hsp.query/hsp.hit may use more memory
 9. check input fasta length
 10. use namedtuple
+11. download data from NCBI
