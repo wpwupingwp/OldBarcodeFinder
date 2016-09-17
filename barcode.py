@@ -127,6 +127,14 @@ def extract(db, singlecopy):
     return barcode
 
 
+def mafft(barcode_file):
+    for barcode in barcode_file:
+        run('mafft --thread {0} {1} > {2}'.format(
+            cpu_count(), barcode, barcode.replace('.fasta', '.aln')),
+            shell=True)
+    return
+
+
 def main():
     """This program will try to find out single-copy barcode to devide
     different species in given two fasta files while ignore distinction
@@ -175,7 +183,8 @@ def main():
     # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
-        extract(merge_db, singlecopy)
+        barcode = extract(merge_db, singlecopy)
+        mafft(barcode)
 
 
 if __name__ == '__main__':
