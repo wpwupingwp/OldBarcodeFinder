@@ -120,10 +120,9 @@ def extract(db, singlecopy):
                                  hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
         hit_seq = [i[1] for i in hit_seq]
-        # to be continue
         barcode_output = path.join(arg.output, 'barcode-{0}.fasta'.format(n))
-        barcode.append(barcode_output)
         SeqIO.write(hit_seq, barcode_output, 'fasta')
+        barcode.append(barcode_output)
         n += 1
     return barcode
 
@@ -135,7 +134,7 @@ def main():
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
-    sys.stderr = open('barcode.err', 'w')
+    sys.stderr = open('logfile', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('sample', default=15, type=int,
                         help='sample numbers')
