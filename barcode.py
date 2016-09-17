@@ -102,12 +102,11 @@ def remove_multicopy(raw):
     return singlecopy
 
 
-def extract(db_file, singlecopy):
+def extract(db, singlecopy):
     """Extract barcode sequence with BLAST against merged query files to
     ensure the validation of the barcode.
     """
     barcode = list()
-    db = makeblastdb(db_file)
     hits = dict()
     for record in singlecopy:
         hits[record[3]] = record[0]
@@ -157,6 +156,7 @@ def main():
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
     merge_file = path.join(arg.path, 'merge.fasta')
+    merge_db = makeblastdb(merge_file)
     with open(merge_file, 'w') as merge:
         for fasta in fasta_files:
             with open(fasta, 'r') as f:
@@ -176,7 +176,7 @@ def main():
     # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
-        extract(merge_file, singlecopy)
+        extract(merge_db, singlecopy)
 
 
 if __name__ == '__main__':
