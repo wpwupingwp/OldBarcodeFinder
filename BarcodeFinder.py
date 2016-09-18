@@ -204,11 +204,11 @@ def main():
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
     merge_file = path.join(arg.path, 'merge.fasta')
-    merge_db = makeblastdb(merge_file)
     with open(merge_file, 'w') as merge:
         for fasta in fasta_files:
             with open(fasta, 'r') as f:
                 merge.write(f.read())
+    merge_db = makeblastdb(merge_file)
     fasta_files = {get_sample(i, arg.sample): i for i in fasta_files}
     fasta_files_sample = [i for i in fasta_files.keys()]
     if arg.db is None:
