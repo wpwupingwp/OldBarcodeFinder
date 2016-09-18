@@ -10,3 +10,6 @@
 10. use namedtuple
 11. download data from NCBI
 12. remove find_longest
+13. rename sequences for generate tree
+14. try to handle more than two taxon group
+15. test in Windows
