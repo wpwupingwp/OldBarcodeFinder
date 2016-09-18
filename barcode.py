@@ -144,15 +144,6 @@ def mafft(barcode_file):
     return barcode_aln
 
 
-def raxml(barcode_file):
-    for barcode in barcode_file:
-        phylip_file = barcode.replace('.fasta', '.phy')
-        SeqIO.convert(barcode, 'fasta', phylip_file, 'phylip')
-        a = run('makeblastdb -h', shell=True)
-        print(a.returncode)
-    return
-
-
 def main():
     """This program will try to find out single-copy barcode to devide
     different species in given two fasta files while ignore distinction
@@ -202,8 +193,7 @@ def main():
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
         barcode = extract(merge_db, singlecopy)
-        barcode_aln = mafft(barcode)
-        raxml(barcode_aln)
+        mafft(barcode)
 
 
 if __name__ == '__main__':
