@@ -22,7 +22,7 @@ def check_dependence():
         if check.returncode != 0:
             raise Exception('{0} missing, see README for install'.format(
                 program))
-    for program in ('mafft', 'python3'):
+    for program in ('mafft', ):
         check = run('{0} --version'.format(program), shell=True)
         if check.returncode != 0:
             print(check)
