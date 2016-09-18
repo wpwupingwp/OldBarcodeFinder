@@ -131,7 +131,7 @@ def mafft(barcode_file):
     barcode_aln = list()
     for barcode in barcode_file:
         aln_file = barcode.replace('.fasta', '.aln')
-        run('mafft --thread {0} {1} > {2}'.format(
+        run('mafft --quiet --thread {0} {1} > {2}'.format(
             cpu_count(), barcode, aln_file), shell=True)
         barcode_aln.append(aln_file)
     return barcode_aln
