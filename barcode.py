@@ -220,8 +220,8 @@ def main():
         singlecopy = remove_multicopy(raw_result)
         barcode = extract(merge_db, singlecopy)
         mafft(barcode)
-        print('''Done. You can find barcodes as aligned fasta format in
-        {0}.\n'''.format(arg.output))
+    print('''Finished with {0:.3f}s. You can find barcodes as aligned fasta
+         format in {1}.\n'''.format(process_time(), arg.output))
 
 
 if __name__ == '__main__':
