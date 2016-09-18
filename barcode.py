@@ -11,6 +11,24 @@ from os import path, mkdir
 from subprocess import run
 
 
+def check_dependence():
+    """Check dependent programs by printing version info of them. Since
+    BLAST suite does not use traditional "--version", here are two loops
+    to handle the difference.
+    """
+    for program in ('makeblastdb', 'blastn'):
+        check = run('{0} -version'.format(program), shell=True)
+        if check.returncode != 0:
+            raise Exception('{0} missing, see README for install'.format(
+                program))
+    for program in ('mafft', 'python3'):
+        check = run('{0} --version'.format(program), shell=True)
+        if check.returncode != 0:
+            print(check)
+            raise Exception('{0} missing, see README for install'.format(
+                program))
+
+
 def find_longest(fasta_files):
     avg_length = list()
     for fasta in fasta_files:
@@ -151,6 +169,7 @@ def main():
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
+    check_dependence()
     sys.stderr = open('barcode.log', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('-n', '--sample', default=3, type=int,
