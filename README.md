@@ -62,19 +62,19 @@ Put BarcodeFinder.py into same directory of input fasta files. Then run the comm
 
 For Microsoft Windows user:
 
->python barcode.py 
+>python BarcodeFinder.py 
 
 For Linux user:
 
->python3 barcode.py
+>python3 BarcodeFinder.py
 
 If you want to change parameters set by default, see details by 
 
->python barcode.py –h 
+>python BarcodeFinder.py –h 
 
 or 
 
->python3 barcode.py –h.
+>python3 BarcodeFinder.py –h.
 
 ## Copying ##
 
