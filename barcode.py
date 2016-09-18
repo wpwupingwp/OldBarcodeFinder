@@ -9,6 +9,7 @@ from glob import glob
 from multiprocessing import cpu_count
 from os import path, mkdir
 from subprocess import run
+from time import process_time
 
 
 def check_dependence():
@@ -219,6 +220,8 @@ def main():
         singlecopy = remove_multicopy(raw_result)
         barcode = extract(merge_db, singlecopy)
         mafft(barcode)
+        print('''Done. You can find barcodes as aligned fasta format in
+        {0}.\n'''.format(arg.output))
 
 
 if __name__ == '__main__':
