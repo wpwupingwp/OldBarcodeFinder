@@ -61,14 +61,16 @@ def parse(blast_result):
                 if (hsp_query_length < arg.length or
                         hsp.evalue > arg.evalue):
                     continue
-                line = [hsp.query, hsp.hit, hsp.query_start, hsp.hit_start]
+                line = [hsp.query, hsp.hit, hsp.query_start, hsp.hit_start,
+                        hsp.query_end, hsp.hit_end]
                 raw.append(line)
     return raw
 
 
 def remove_multicopy(raw):
     """raw:
-    hsp.query, hsp.hit, hsp.query_start, hsp.hit_start
+    hsp.query, hsp.hit, hsp.query_start, hsp.hit_start, hsp.query_end,
+    hsp.hit_end
     """
     query_info = ['{0}SPLIT{1}SPLIT{2}'.format(
         i[0].id, i[1].id, i[2]) for i in raw]
@@ -120,6 +122,11 @@ def extract(db, singlecopy):
                                  hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
         hit_seq = [i[1] for i in hit_seq]
+        for record in hit_seq:
+            record.id = record.id.replace(' ', '_')
+            record.description = record.description.replace(' ', '_')
+            record.id = '-'.join([record.id, record.description])
+            record.description = ''
         barcode_output = path.join(arg.output, 'barcode-{0}.fasta'.format(n))
         SeqIO.write(hit_seq, barcode_output, 'fasta')
         barcode.append(barcode_output)
