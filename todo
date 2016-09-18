@@ -13,3 +13,5 @@
 13. rename sequences for generate tree
 14. try to handle more than two taxon group
 15. test in Windows
+16. hide output of makeblastdb
+17. hide warning of parsing blast

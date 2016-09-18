@@ -164,6 +164,10 @@ def mafft(barcode_file):
     return barcode_aln
 
 
+def cutoff_line():
+    print('='*80)
+
+
 def main():
     """This program will try to find out single-copy barcode to devide
     different species in given two fasta files while ignore distinction
@@ -189,7 +193,9 @@ def main():
     parser.add_argument('-o', '--output', default='out', help='output path')
     parser.add_argument('-t', '--tempdir', default='tmp',
                         help='temp file directory')
+    cutoff_line()
     parser.print_usage()
+    cutoff_line()
     global arg
     arg = parser.parse_args()
     if not path.exists(arg.tempdir):
@@ -220,6 +226,7 @@ def main():
         singlecopy = remove_multicopy(raw_result)
         barcode = extract(merge_db, singlecopy)
         mafft(barcode)
+    cutoff_line()
     print('''Finished with {0:.3f}s. You can find barcodes as aligned fasta
          format in {1}.\n'''.format(process_time(), arg.output))
 
