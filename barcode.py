@@ -128,18 +128,21 @@ def extract(db, singlecopy):
 
 
 def mafft(barcode_file):
+    barcode_aln = list()
     for barcode in barcode_file:
+        aln_file = barcode.replace('.fasta', '.aln')
         run('mafft --thread {0} {1} > {2}'.format(
-            cpu_count(), barcode, barcode.replace('.fasta', '.aln')),
-            shell=True)
-    return
+            cpu_count(), barcode, aln_file), shell=True)
+        barcode_aln.append(aln_file)
+    return barcode_aln
 
 
 def raxml(barcode_file):
     for barcode in barcode_file:
         phylip_file = barcode.replace('.fasta', '.phy')
         SeqIO.convert(barcode, 'fasta', phylip_file, 'phylip')
-        run()
+        a = run('makeblastdb -h', shell=True)
+        print(a.returncode)
     return
 
 
@@ -150,7 +153,7 @@ def main():
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
-    sys.stderr = open('logfile', 'w')
+    sys.stderr = open('barcode.log', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('sample', default=3, type=int,
                         help='sample numbers')
@@ -192,7 +195,8 @@ def main():
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
         barcode = extract(merge_db, singlecopy)
-        mafft(barcode)
+        barcode_aln = mafft(barcode)
+        raxml(barcode_aln)
 
 
 if __name__ == '__main__':
