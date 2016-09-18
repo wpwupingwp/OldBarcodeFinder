@@ -153,7 +153,7 @@ def main():
     """
     sys.stderr = open('barcode.log', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument('sample', default=3, type=int,
+    parser.add_argument('-n', '--sample', default=3, type=int,
                         help='sample numbers')
     parser.add_argument('-p', '--path', default='.',
                         help='target path, default is present directory')
@@ -166,6 +166,7 @@ def main():
     parser.add_argument('-s', '--strict', action='store_false',
                         help='barcode location among subspecies must be same')
     parser.add_argument('-o', '--output', default='out', help='output path')
+    parser.print_usage()
     global arg
     arg = parser.parse_args()
     if not path.exists(arg.output):
