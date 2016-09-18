@@ -9,7 +9,7 @@ from glob import glob
 from multiprocessing import cpu_count
 from os import path, mkdir
 from subprocess import run
-from time import process_time
+from timeit import default_timer as timer
 
 
 def check_dependence():
@@ -175,6 +175,7 @@ def main():
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
+    start_time = timer()
     check_dependence()
     sys.stderr = open('barcode.log', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
@@ -227,8 +228,9 @@ def main():
         barcode = extract(merge_db, singlecopy)
         mafft(barcode)
     cutoff_line()
+    end_time = timer()
     print('''Finished with {0:.3f}s. You can find barcodes as aligned fasta
-         format in {1}.\n'''.format(process_time(), arg.output))
+         format in {1}.\n'''.format(end_time-start_time, arg.output))
 
 
 if __name__ == '__main__':
