@@ -195,8 +195,6 @@ def main():
     parser.add_argument('-t', '--tempdir', default='tmp',
                         help='temp file directory')
     cutoff_line()
-    parser.print_usage()
-    cutoff_line()
     global arg
     arg = parser.parse_args()
     if not path.exists(arg.tempdir):
