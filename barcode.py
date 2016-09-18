@@ -135,6 +135,14 @@ def mafft(barcode_file):
     return
 
 
+def raxml(barcode_file):
+    for barcode in barcode_file:
+        phylip_file = barcode.replace('.fasta', '.phy')
+        SeqIO.convert(barcode, 'fasta', phylip_file, 'phylip')
+        run()
+    return
+
+
 def main():
     """This program will try to find out single-copy barcode to devide
     different species in given two fasta files while ignore distinction
@@ -144,7 +152,7 @@ def main():
     """
     sys.stderr = open('logfile', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument('sample', default=15, type=int,
+    parser.add_argument('sample', default=3, type=int,
                         help='sample numbers')
     parser.add_argument('-p', '--path', default='.',
                         help='target path, default is present directory')
