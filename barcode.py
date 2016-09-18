@@ -42,7 +42,7 @@ def find_longest(fasta_files):
 
 
 def get_sample(fasta, target):
-    output = path.join(arg.output,
+    output = path.join(arg.tempdir,
                        '{0}-{1}'.format(target, path.basename(fasta)))
     raw = SeqIO.parse(fasta, 'fasta')
     with open(output, 'w') as output_file:
@@ -134,7 +134,7 @@ def extract(db, singlecopy):
     for hit in hits.keys():
         # only use first record
         hit_to_blast = hits[hit]
-        hit_sample = path.join(arg.output, 'hit-{0}.fasta'.format(n))
+        hit_sample = path.join(arg.tempdir, 'hit-{0}.fasta'.format(n))
         SeqIO.write(hit_to_blast, hit_sample, 'fasta')
         hit_blast_result = blast(hit_sample, db,
                                  hit_sample.replace('.fasta', '.xml'))
@@ -145,7 +145,7 @@ def extract(db, singlecopy):
             record.description = record.description.replace(' ', '_')
             record.id = '-'.join([record.id, record.description])
             record.description = ''
-        barcode_output = path.join(arg.output, 'barcode-{0}.fasta'.format(n))
+        barcode_output = path.join(arg.tempdir, 'barcode-{0}.fasta'.format(n))
         SeqIO.write(hit_seq, barcode_output, 'fasta')
         barcode.append(barcode_output)
         n += 1
@@ -156,6 +156,7 @@ def mafft(barcode_file):
     barcode_aln = list()
     for barcode in barcode_file:
         aln_file = barcode.replace('.fasta', '.aln')
+        aln_file = path.join(arg.output, path.basename(aln_file))
         run('mafft --quiet --thread {0} {1} > {2}'.format(
             cpu_count(), barcode, aln_file), shell=True)
         barcode_aln.append(aln_file)
@@ -185,9 +186,13 @@ def main():
     parser.add_argument('-s', '--strict', action='store_false',
                         help='barcode location among subspecies must be same')
     parser.add_argument('-o', '--output', default='out', help='output path')
+    parser.add_argument('-t', '--tempdir', default='tmp',
+                        help='temp file directory')
     parser.print_usage()
     global arg
     arg = parser.parse_args()
+    if not path.exists(arg.tempdir):
+        mkdir(arg.tempdir)
     if not path.exists(arg.output):
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
