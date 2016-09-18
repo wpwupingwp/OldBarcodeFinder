@@ -9,3 +9,4 @@
 9. check input fasta length
 10. use namedtuple
 11. download data from NCBI
+12. remove find_longest
