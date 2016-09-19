@@ -27,7 +27,7 @@ Be sure to install python3 rather than python 2.7.
 
 2. [biopython] (http://biopython.org/wiki/Download)
 
-3. [BLAST Suite] (ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/)
+3. [BLAST Suite] (https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
 4. [mafft] (http://mafft.cbrc.jp/alignment/software/)
 
