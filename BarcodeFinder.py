@@ -177,7 +177,7 @@ def main():
     """
     start_time = timer()
     check_dependence()
-    sys.stderr = open('barcode.log', 'w')
+    sys.stderr = open('BarcodeFinder.log', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('-n', '--sample', default=3, type=int,
                         help='sample numbers')
@@ -202,7 +202,7 @@ def main():
     if not path.exists(arg.output):
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
-    merge_file = path.join(arg.path, 'merge.fa')
+    merge_file = path.join(arg.path, 'merge')
     with open(merge_file, 'w') as merge:
         for fasta in fasta_files:
             with open(fasta, 'r') as f:
