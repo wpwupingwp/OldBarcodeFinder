@@ -8,6 +8,7 @@ from collections import Counter
 from glob import glob
 from multiprocessing import cpu_count
 from os import path, mkdir
+from random import shuffle
 from subprocess import run
 from timeit import default_timer as timer
 
@@ -33,10 +34,13 @@ def check_dependence():
 def get_sample(fasta, target):
     output = path.join(arg.tempdir,
                        '{0}-{1}'.format(target, path.basename(fasta)))
-    raw = SeqIO.parse(fasta, 'fasta')
+    raw = SeqIO.index(fasta, 'fasta')
+    target_list = list(raw.keys())
+    shuffle(target_list)
+    target_list = target_list[:arg.sample]
     with open(output, 'w') as output_file:
-        for n in range(target):
-            SeqIO.write(next(raw), output_file, 'fasta')
+        for index in target_list:
+            SeqIO.write(raw[index], output_file, 'fasta')
     return output
 
 
