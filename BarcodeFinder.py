@@ -30,18 +30,6 @@ def check_dependence():
                 program))
 
 
-def find_longest(fasta_files):
-    avg_length = list()
-    for fasta in fasta_files:
-        length = list()
-        raw = SeqIO.parse(fasta, 'fasta')
-        for sequence in raw:
-            length.append(len(sequence))
-        avg_length.append([fasta, sum(length)/len(length)])
-    avg_length.sort(key=lambda i: i[1])
-    return [i[0] for i in avg_length]
-
-
 def get_sample(fasta, target):
     output = path.join(arg.tempdir,
                        '{0}-{1}'.format(target, path.basename(fasta)))
@@ -183,8 +171,6 @@ def main():
                         help='sample numbers')
     parser.add_argument('-p', '--path', default='.',
                         help='target path, default is present directory')
-    parser.add_argument('-d', '--db', default=None, help='''fasta file to make blast
-    database, which contains longest sequence''')
     parser.add_argument('-l', '--length', default=200, type=int,
                         help='minium barcode length')
     parser.add_argument('-e', '--evalue', default=1e-20, type=float,
@@ -210,11 +196,7 @@ def main():
     merge_db = makeblastdb(merge_file)
     fasta_files = {get_sample(i, arg.sample): i for i in fasta_files}
     fasta_files_sample = [i for i in fasta_files.keys()]
-    if arg.db is None:
-        *query, db = find_longest(fasta_files_sample)
-    else:
-        db = arg[db]
-        query = set(fasta_files_sample) - db
+    *query, db = fasta_files_sample
     db_name = makeblastdb(db)
     blast_result = list()
     for fasta in query:
