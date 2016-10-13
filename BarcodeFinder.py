@@ -115,7 +115,7 @@ def remove_multicopy(raw):
     return singlecopy
 
 
-def extract(db, singlecopy):
+def extract(db, singlecopy, n_fasta):
     """Extract barcode sequence with BLAST against merged query files to
     ensure the validation of the barcode.
     """
@@ -138,7 +138,8 @@ def extract(db, singlecopy):
             record.description = record.description.replace(' ', '_')
             record.id = '-'.join([record.id, record.description])
             record.description = ''
-        barcode_output = path.join(arg.tempdir, 'barcode-{0}.fasta'.format(n))
+        barcode_output = path.join(arg.tempdir,
+                                   'barcode-{0}-{1}.fasta'.format(n_fasta, n))
         SeqIO.write(hit_seq, barcode_output, 'fasta')
         barcode.append(barcode_output)
         n += 1
@@ -202,14 +203,12 @@ def main():
     fasta_files_sample = [i for i in fasta_files.keys()]
     *query, db = fasta_files_sample
     db_name = makeblastdb(db)
-    blast_result = list()
-    for fasta in query:
+    for n_fasta, fasta in enumerate(query):
         result_file = fasta.replace('.fasta', '.xml')
         blast_result = blast(fasta, db_name, result_file)
-    # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
-        barcode = extract(merge_db, singlecopy)
+        barcode = extract(merge_db, singlecopy, n_fasta)
         mafft(barcode)
     cutoff_line()
     end_time = timer()
