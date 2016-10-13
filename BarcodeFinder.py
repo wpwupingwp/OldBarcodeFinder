@@ -202,7 +202,7 @@ def main():
     if not path.exists(arg.output):
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
-    merge_file = path.join(arg.path, 'merge.fasta')
+    merge_file = path.join(arg.path, 'merge.fa')
     with open(merge_file, 'w') as merge:
         for fasta in fasta_files:
             with open(fasta, 'r') as f:
