@@ -228,7 +228,8 @@ def main():
     cutoff_line()
     end_time = timer()
     print('''Finished with {0:.3f}s. You can find barcodes as aligned fasta
-         format in {1}.\n'''.format(end_time-start_time, arg.output))
+         format in the output folder "{1}".\n'''.format(
+             end_time-start_time, arg.output))
 
 
 if __name__ == '__main__':
