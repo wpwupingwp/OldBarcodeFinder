@@ -21,7 +21,7 @@ def print_time(function):
         result = function(*args, **kargs)
         end = timer()
         print('='*80)
-        print('The function {0} costed {1:3f}s.'.format(
+        print('The function {0} costed {1:.3f}s.'.format(
             function.__name__, end-start))
         return result
     return wrapper
