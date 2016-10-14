@@ -10,6 +10,7 @@ from multiprocessing import cpu_count
 from os import path, mkdir
 from random import sample
 from subprocess import run
+from tempfile import mkdtemp
 from timeit import default_timer as timer
 
 
@@ -59,7 +60,7 @@ def merge_and_split(fasta_files, target):
     sample_list = list()
     with open(merge_file, 'w') as merge:
         for fasta in fasta_files:
-            output = path.join(arg.tempdir, '{0}-{1}'.format(
+            output = path.join(tmp, '{0}-{1}'.format(
                 target, path.basename(fasta)))
             raw = list(SeqIO.parse(fasta, 'fasta'))
             count += len(raw)
@@ -150,7 +151,7 @@ def extract(db, singlecopy, count, n_query):
     for hit in hits.keys():
         # only use first record
         hit_to_blast = hits[hit]
-        hit_sample = path.join(arg.tempdir, 'hit-{0}.fasta'.format(n))
+        hit_sample = path.join(tmp, 'hit-{0}.fasta'.format(n))
         SeqIO.write(hit_to_blast, hit_sample, 'fasta')
         hit_blast_result = blast(hit_sample, db,
                                  hit_sample.replace('.fasta', '.xml'))
@@ -167,7 +168,7 @@ def extract(db, singlecopy, count, n_query):
             record.description = record.description.replace(' ', '_')
             record.id = '-'.join([record.id, record.description])
             record.description = ''
-        barcode_output = path.join(arg.tempdir,
+        barcode_output = path.join(tmp,
                                    'barcode-{0}-{1}.fasta'.format(n_query, n))
         SeqIO.write(hit_seq, barcode_output, 'fasta')
         barcode.append(barcode_output)
@@ -228,12 +229,10 @@ def main():
     parser.add_argument('-s', '--strict', action='store_false',
                         help='barcode location among subspecies must be same')
     parser.add_argument('-o', '--output', default='out', help='output path')
-    parser.add_argument('-t', '--tempdir', default='tmp',
-                        help='temp file directory')
     global arg
     arg = parser.parse_args()
-    if not path.exists(arg.tempdir):
-        mkdir(arg.tempdir)
+    global tmp
+    tmp = mkdtemp()
     if not path.exists(arg.output):
         mkdir(arg.output)
     round = 1
