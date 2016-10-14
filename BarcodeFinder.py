@@ -189,7 +189,7 @@ def main():
     times = dict()
     times['start'] = timer()
     check_dependence()
-    sys.stderr = open('BarcodeFinder.log', 'w')
+    sys.stderr = open('logfile.txt', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('-n', '--sample', default=3, type=int,
                         help='sample numbers')
