@@ -48,6 +48,7 @@ def check_dependence():
 @print_time
 def makeblastdb(db_file):
     db_name = db_file.replace('.fasta', '')
+    db_name = path.join(tmp, db_name)
     run('makeblastdb -in {0} -out {1} -logfile {2} -dbtype nucl'.format(
         db_file, db_name, db_name+'.log'), shell=True)
     return db_name
@@ -55,7 +56,7 @@ def makeblastdb(db_file):
 
 @print_time
 def merge_and_split(fasta_files, target):
-    merge_file = path.join(arg.path, 'merge')
+    merge_file = path.join(tmp, arg.path, 'merge')
     count = 0
     sample_list = list()
     with open(merge_file, 'w') as merge:
