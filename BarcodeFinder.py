@@ -44,9 +44,11 @@ def check_dependence():
                 program))
 
 
+@print_time
 def get_sample(fasta, target):
     output = path.join(arg.tempdir,
                        '{0}-{1}'.format(target, path.basename(fasta)))
+    print(output)
     raw = SeqIO.index(fasta, 'fasta')
     target_list = list(raw.keys())
     shuffle(target_list)
@@ -57,6 +59,7 @@ def get_sample(fasta, target):
     return output
 
 
+@print_time
 def makeblastdb(db_file):
     db_name = db_file.replace('.fasta', '')
     run('makeblastdb -in {0} -title {1} -out {1} -dbtype nucl'.format(
@@ -64,6 +67,7 @@ def makeblastdb(db_file):
     return db_name
 
 
+@print_time
 def blast(query_file, db_file, output_file='BLASTResult.xml'):
     cmd = nb(num_threads=cpu_count(),
              query=query_file,
@@ -75,6 +79,7 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     return output_file
 
 
+@print_time
 def parse(blast_result):
     raw = list()
     result = SearchIO.parse(blast_result, 'blast-xml')
@@ -91,6 +96,7 @@ def parse(blast_result):
     return raw
 
 
+@print_time
 def remove_multicopy(raw):
     """raw:
     hsp.query, hsp.hit, hsp.query_start, hsp.hit_start, hsp.query_end,
@@ -128,6 +134,7 @@ def remove_multicopy(raw):
     return singlecopy
 
 
+@print_time
 def extract(db, singlecopy):
     """Extract barcode sequence with BLAST against merged query files to
     ensure the validation of the barcode.
@@ -158,6 +165,7 @@ def extract(db, singlecopy):
     return barcode
 
 
+@print_time
 def mafft(barcode_file):
     barcode_aln = list()
     for barcode in barcode_file:
