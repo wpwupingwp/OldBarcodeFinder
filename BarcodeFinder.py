@@ -19,7 +19,6 @@ def print_time(function):
         start = timer()
         result = function(*args, **kargs)
         end = timer()
-        print('_'*80)
         print('The function {0} costed {1:.3f}s.'.format(
             function.__name__, end-start))
         return result
@@ -159,9 +158,9 @@ def extract(db, singlecopy, count, n_query):
         hit_seq = remove_multicopy(hit_seq)
         hit_seq = [i[1] for i in hit_seq]
         cover = len(hit_seq) / count
-        print(len(hit_seq), count, cover, arg.cover)
         if cover < arg.cover:
-            print('coverage too small, drop it.')
+            print('''The coverage of this barcode candidate is too small
+({0:.3f}), drop it.'''.format(cover))
             continue
         for record in hit_seq:
             record.id = record.id.replace(' ', '_')
@@ -237,10 +236,15 @@ def main():
         mkdir(arg.tempdir)
     if not path.exists(arg.output):
         mkdir(arg.output)
+    round = 1
     while True:
+        print('='*80)
+        print('ROUND {0}:'.format(round))
         n_barcode = find_barcode()
         if n_barcode != 0:
             break
+        print('\n\nNo good barcode found this turn, restarting now ...\n\n''')
+        round += 1
     times['end'] = timer()
     print('''\n\nFinished with {0:.3f}s. You can find {1} barcodes as aligned fasta
           format in the output folder "{2}".\n'''.format(
