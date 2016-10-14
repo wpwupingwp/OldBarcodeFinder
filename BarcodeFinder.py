@@ -18,7 +18,7 @@ def print_time(function):
     @wraps(function)
     def wrapper(*args, **kargs):
         start = timer()
-        function(*args, **kargs)
+        result = function(*args, **kargs)
         end = timer()
         print('The function {0} costed {1:3f}s.\n'.format(
             function.__name__, end-start))
@@ -48,7 +48,6 @@ def check_dependence():
 def get_sample(fasta, target):
     output = path.join(arg.tempdir,
                        '{0}-{1}'.format(target, path.basename(fasta)))
-    print(output)
     raw = SeqIO.index(fasta, 'fasta')
     target_list = list(raw.keys())
     shuffle(target_list)
@@ -221,9 +220,9 @@ def main():
             with open(fasta, 'r') as f:
                 merge.write(f.read())
     merge_db = makeblastdb(merge_file)
-    fasta_files = {get_sample(i, arg.sample): i for i in fasta_files}
-    fasta_files_sample = [i for i in fasta_files.keys()]
-    *query, db = fasta_files_sample
+    fasta_files = [get_sample(i, arg.sample) for i in fasta_files]
+    print(fasta_files)
+    *query, db = fasta_files
     db_name = makeblastdb(db)
     for n_query, fasta in enumerate(query):
         result_file = fasta.replace('.fasta', '.xml')
