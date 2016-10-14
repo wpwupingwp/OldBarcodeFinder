@@ -136,12 +136,13 @@ def remove_multicopy(raw):
                      i[0].id, i[1].id, i[2]) not in to_remove)):
             singlecopy.append(i)
     singlecopy.sort(key=lambda i: i[3])
-    print(len(singlecopy))
+    if len(singlecopy) == 0:
+        raise Exception('no single copy found this round.')
     return singlecopy
 
 
 @print_time
-def extract(db, singlecopy, n_query):
+def extract(db, singlecopy, count, n_query):
     """Extract barcode sequence with BLAST against merged query files to
     ensure the validation of the barcode.
     """
@@ -159,6 +160,11 @@ def extract(db, singlecopy, n_query):
                                  hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
         hit_seq = [i[1] for i in hit_seq]
+        cover = len(hit_seq) / count
+        print(len(hit_seq), count, cover, arg.cover)
+        if cover < arg.cover:
+            print('coverage too small, drop it.')
+            raise Exception
         for record in hit_seq:
             record.id = record.id.replace(' ', '_')
             record.description = record.description.replace(' ', '_')
@@ -204,6 +210,8 @@ def main():
                         help='minium barcode length')
     parser.add_argument('-e', '--evalue', default=1e-20, type=float,
                         help='evalue for BLAST')
+    parser.add_argument('-c', '--cover', default=0.8, type=float,
+                        help='coverage of barcode among query data')
     parser.add_argument('-s', '--strict', action='store_false',
                         help='barcode location among subspecies must be same')
     parser.add_argument('-o', '--output', default='out', help='output path')
@@ -228,7 +236,7 @@ def main():
     # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
-        barcode = extract(merge_db, singlecopy, n_query)
+        barcode = extract(merge_db, singlecopy, count, n_query)
         mafft(barcode)
     times['end'] = timer()
     print('''\n\nFinished with {0:.3f}s. You can find barcodes as aligned fasta
