@@ -167,7 +167,8 @@ def main():
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
-    start_time = timer()
+    times = dict()
+    times['start'] = timer()
     check_dependence()
     sys.stderr = open('BarcodeFinder.log', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
@@ -202,7 +203,6 @@ def main():
     fasta_files_sample = [i for i in fasta_files.keys()]
     *query, db = fasta_files_sample
     db_name = makeblastdb(db)
-    blast_result = list()
     for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result = blast(fasta, db_name, result_file)
@@ -212,10 +212,10 @@ def main():
         barcode = extract(merge_db, singlecopy)
         mafft(barcode)
     cutoff_line()
-    end_time = timer()
+    times['end'] = timer()
     print('''Finished with {0:.3f}s. You can find barcodes as aligned fasta
-         format in the output folder "{1}".\n'''.format(
-             end_time-start_time, arg.output))
+          format in the output folder
+          "{1}".\n'''.format(times['end']-times['start'], arg.output))
 
 
 if __name__ == '__main__':
