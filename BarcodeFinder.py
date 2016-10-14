@@ -22,6 +22,7 @@ def print_time(function):
         end = timer()
         print('The function {0} costed {1:3f}s.\n'.format(
             function.__name__, end-start))
+        return result
     return wrapper
 
 
