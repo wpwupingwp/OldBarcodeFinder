@@ -5,6 +5,7 @@ import sys
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
 from collections import Counter
+from functools import wraps
 from glob import glob
 from multiprocessing import cpu_count
 from os import path, mkdir
@@ -13,6 +14,18 @@ from subprocess import run
 from timeit import default_timer as timer
 
 
+def print_time(function):
+    @wraps(function)
+    def wrapper(*args, **kargs):
+        start = timer()
+        function(*args, **kargs)
+        end = timer()
+        print('The function {0} costed {1:3f}s.\n'.format(
+            function.__name__, end-start))
+    return wrapper
+
+
+@print_time
 def check_dependence():
     """Check dependent programs by printing version info of them. Since
     BLAST suite does not use traditional "--version", here are two loops
@@ -31,9 +44,11 @@ def check_dependence():
                 program))
 
 
+@print_time
 def get_sample(fasta, target):
     output = path.join(arg.tempdir,
                        '{0}-{1}'.format(target, path.basename(fasta)))
+    print(output)
     raw = SeqIO.index(fasta, 'fasta')
     target_list = list(raw.keys())
     shuffle(target_list)
@@ -44,6 +59,7 @@ def get_sample(fasta, target):
     return output
 
 
+@print_time
 def makeblastdb(db_file):
     db_name = db_file.replace('.fasta', '')
     run('makeblastdb -in {0} -title {1} -out {1} -dbtype nucl'.format(
@@ -51,6 +67,7 @@ def makeblastdb(db_file):
     return db_name
 
 
+@print_time
 def blast(query_file, db_file, output_file='BLASTResult.xml'):
     cmd = nb(num_threads=cpu_count(),
              query=query_file,
@@ -62,6 +79,7 @@ def blast(query_file, db_file, output_file='BLASTResult.xml'):
     return output_file
 
 
+@print_time
 def parse(blast_result):
     raw = list()
     result = SearchIO.parse(blast_result, 'blast-xml')
@@ -78,6 +96,7 @@ def parse(blast_result):
     return raw
 
 
+@print_time
 def remove_multicopy(raw):
     """raw:
     hsp.query, hsp.hit, hsp.query_start, hsp.hit_start, hsp.query_end,
@@ -115,7 +134,8 @@ def remove_multicopy(raw):
     return singlecopy
 
 
-def extract(db, singlecopy, n_fasta):
+@print_time
+def extract(db, singlecopy):
     """Extract barcode sequence with BLAST against merged query files to
     ensure the validation of the barcode.
     """
@@ -138,14 +158,14 @@ def extract(db, singlecopy, n_fasta):
             record.description = record.description.replace(' ', '_')
             record.id = '-'.join([record.id, record.description])
             record.description = ''
-        barcode_output = path.join(arg.tempdir,
-                                   'barcode-{0}-{1}.fasta'.format(n_fasta, n))
+        barcode_output = path.join(arg.tempdir, 'barcode-{0}.fasta'.format(n))
         SeqIO.write(hit_seq, barcode_output, 'fasta')
         barcode.append(barcode_output)
         n += 1
     return barcode
 
 
+@print_time
 def mafft(barcode_file):
     barcode_aln = list()
     for barcode in barcode_file:
@@ -168,7 +188,8 @@ def main():
     Notice that this program assuming that the sequence length of every record
     in each input fasta file has slight difference.
     """
-    start_time = timer()
+    times = dict()
+    times['start'] = timer()
     check_dependence()
     sys.stderr = open('BarcodeFinder.log', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
@@ -203,18 +224,19 @@ def main():
     fasta_files_sample = [i for i in fasta_files.keys()]
     *query, db = fasta_files_sample
     db_name = makeblastdb(db)
-    for n_fasta, fasta in enumerate(query):
+    for fasta in query:
         result_file = fasta.replace('.fasta', '.xml')
         blast_result = blast(fasta, db_name, result_file)
+    # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result)
-        barcode = extract(merge_db, singlecopy, n_fasta)
+        barcode = extract(merge_db, singlecopy)
         mafft(barcode)
     cutoff_line()
-    end_time = timer()
+    times['end'] = timer()
     print('''Finished with {0:.3f}s. You can find barcodes as aligned fasta
-         format in the output folder "{1}".\n'''.format(
-             end_time-start_time, arg.output))
+          format in the output folder
+          "{1}".\n'''.format(times['end']-times['start'], arg.output))
 
 
 if __name__ == '__main__':
