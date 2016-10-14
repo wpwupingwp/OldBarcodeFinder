@@ -102,7 +102,7 @@ def parse(blast_result):
 
 
 @print_time
-def remove_multicopy(raw):
+def remove_multicopy(raw, is_merge):
     """raw:
     hsp.query, hsp.hit, hsp.query_start, hsp.hit_start, hsp.query_end,
     hsp.hit_end
@@ -120,7 +120,7 @@ def remove_multicopy(raw):
     for key in hit_info.keys():
         if hit_info[key] != 1:
             to_remove.add(key)
-    if arg.strict:
+    if not is_merge:
         limit = arg.sample ** 2
         count_info = [i[3] for i in raw]
         count_info = Counter(count_info)
@@ -157,7 +157,7 @@ def extract(db, singlecopy, count, n_query):
         hit_blast_result = blast(hit_sample, db,
                                  hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
-        hit_seq = remove_multicopy(hit_seq)
+        hit_seq = remove_multicopy(hit_seq, True)
         hit_seq = [i[1] for i in hit_seq]
         cover = len(hit_seq) / count
         if cover < arg.cover:
@@ -191,16 +191,16 @@ def mafft(barcode_file):
 
 def find_barcode():
     fasta_files = glob(path.join(arg.path, '*.fasta'))
-    count, merge_file, fasta_files = merge_and_split(fasta_files, arg.sample)
+    count, merge_file, sample_list = merge_and_split(fasta_files, arg.sample)
     merge_db = makeblastdb(merge_file)
-    *query, db = fasta_files
+    *query, db = sample_list
     db_name = makeblastdb(db)
     for n_query, fasta in enumerate(query):
         result_file = fasta.replace('.fasta', '.xml')
         blast_result = blast(fasta, db_name, result_file)
     # to be continue
         raw_result = parse(blast_result)
-        singlecopy = remove_multicopy(raw_result)
+        singlecopy = remove_multicopy(raw_result, False)
         barcode = extract(merge_db, singlecopy, count, n_query)
         mafft(barcode)
     return len(barcode)
@@ -227,8 +227,6 @@ def main():
                         help='evalue for BLAST')
     parser.add_argument('-c', '--cover', default=0.8, type=float,
                         help='coverage of barcode among query data')
-    parser.add_argument('-s', '--strict', action='store_false',
-                        help='barcode location among subspecies must be same')
     parser.add_argument('-o', '--output', default='out', help='output path')
     global arg
     arg = parser.parse_args()
