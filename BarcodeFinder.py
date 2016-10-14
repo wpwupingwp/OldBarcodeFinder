@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import argparse
-import sys
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
 from collections import Counter
@@ -200,7 +199,6 @@ def main():
     times = dict()
     times['start'] = timer()
     check_dependence()
-    sys.stderr = open('logfile.txt', 'w')
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument('-n', '--sample', default=3, type=int,
                         help='sample numbers')
