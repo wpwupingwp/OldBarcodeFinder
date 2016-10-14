@@ -63,14 +63,16 @@ def merge_and_split(fasta_files, target):
         for fasta in fasta_files:
             output = path.join(arg.tempdir, '{0}-{1}'.format(
                 target, path.basename(fasta)))
-            raw = list(SeqIO.parse(fasta, 'fasta'))
-            count += len(raw)
-            target_list = sample(raw, target)
-            SeqIO.write(target_list, output, 'fasta')
+            raw = SeqIO.index(fasta, 'fasta')
+            raw_key = list(raw.keys())
+            count += len(raw_key)
+            target_list = sample(raw_key, target)
+            with open(output, 'w') as f:
+                for record in target_list:
+                    SeqIO.write(raw[record], f, 'fasta')
             sample_list.append(output)
             with open(fasta, 'r') as f:
                 merge.write(f.read())
-    makeblastdb(merge_file)
     return count, merge_file, sample_list
 
 
@@ -219,8 +221,9 @@ def main():
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
     # pass
-    count, merge_db, fasta_files = merge_and_split(fasta_files, arg.sample)
+    count, merge_file, fasta_files = merge_and_split(fasta_files, arg.sample)
     # pass
+    merge_db = makeblastdb(merge_file)
     *query, db = fasta_files
     db_name = makeblastdb(db)
     for n_query, fasta in enumerate(query):
