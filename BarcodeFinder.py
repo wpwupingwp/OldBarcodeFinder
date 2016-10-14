@@ -48,6 +48,7 @@ def check_dependence():
 @print_time
 def makeblastdb(db_file):
     db_name = db_file.replace('.fasta', '')
+    db_name = path.join(tmp, db_name)
     run('makeblastdb -in {0} -out {1} -logfile {2} -dbtype nucl'.format(
         db_file, db_name, db_name+'.log'), shell=True)
     return db_name
