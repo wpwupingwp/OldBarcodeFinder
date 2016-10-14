@@ -103,7 +103,7 @@ def parse(blast_result):
 
 
 @print_time
-def remove_multicopy(raw, is_merge):
+def remove_multicopy(raw, total_count, is_merge=False):
     """raw:
     hsp.query, hsp.hit, hsp.query_start, hsp.hit_start, hsp.query_end,
     hsp.hit_end
@@ -121,13 +121,16 @@ def remove_multicopy(raw, is_merge):
     for key in hit_info.keys():
         if hit_info[key] != 1:
             to_remove.add(key)
-    if not is_merge:
-        limit = arg.sample ** 2
-        count_info = [i[3] for i in raw]
-        count_info = Counter(count_info)
-        for hit in count_info.keys():
-            if count_info[hit] < limit:
-                to_remove.add(hit)
+    count_info = [i[3] for i in raw]
+    count_info = Counter(count_info)
+    for hit in count_info.keys():
+        if is_merge:
+            # to be continue
+            condition = (count_info[hit] > total_count)
+        else:
+            condition = (count_info[hit] < arg.sample ** 2)
+        if condition:
+            to_remove.add(hit)
     singlecopy = list()
     for i in raw:
         if (i[3] not in to_remove and
@@ -158,12 +161,10 @@ def extract(db, singlecopy, total_count, n_query):
         hit_blast_result = blast(hit_sample, db,
                                  hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
-        hit_seq = remove_multicopy(hit_seq, True)
+        hit_seq = remove_multicopy(hit_seq, total_count, is_merge=True)
         hit_seq = [i[1] for i in hit_seq]
         cover = len(hit_seq) / total_count
-        if cover < arg.cover:
-            print('''The coverage of this barcode candidate is too small
-({0:.3f}), drop it.'''.format(cover))
+        if (cover < arg.cover) or (cover > 1):
             continue
         for record in hit_seq:
             record.id = record.id.replace(' ', '_')
@@ -215,7 +216,7 @@ def find_barcode():
         blast_result = blast(fasta, db_name, result_file)
     # to be continue
         raw_result = parse(blast_result)
-        singlecopy = remove_multicopy(raw_result, False)
+        singlecopy = remove_multicopy(raw_result, total_count)
         barcode = extract(merge_db, singlecopy, total_count, n_query)
         barcode_aln = mafft(barcode)
         stats(barcode_aln, total_count)
