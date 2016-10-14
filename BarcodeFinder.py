@@ -5,6 +5,7 @@ import sys
 from Bio import SearchIO, SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline as nb
 from collections import Counter
+from functools import wraps
 from glob import glob
 from multiprocessing import cpu_count
 from os import path, mkdir
@@ -13,6 +14,18 @@ from subprocess import run
 from timeit import default_timer as timer
 
 
+def print_time(function):
+    @wraps(function)
+    def wrapper(*args, **kargs):
+        start = timer()
+        function(*args, **kargs)
+        end = timer()
+        print('The function {0} costed {1:3f}s.\n'.format(
+            function.__name__, end-start))
+    return wrapper
+
+
+@print_time
 def check_dependence():
     """Check dependent programs by printing version info of them. Since
     BLAST suite does not use traditional "--version", here are two loops
