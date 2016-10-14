@@ -134,9 +134,10 @@ def remove_multicopy(raw):
                  '{0}SPLIT{1}SPLIT{2}'.format(
                      i[0].id, i[1].id, i[2]) not in to_remove)):
             singlecopy.append(i)
-    singlecopy.sort(key=lambda i: i[3])
     if len(singlecopy) == 0:
-        raise Exception('no single copy found this round.')
+        raise Exception('''No single copy found in this round. Please rerun the
+                        program.''')
+    singlecopy.sort(key=lambda i: i[3])
     return singlecopy
 
 
@@ -174,6 +175,9 @@ def extract(db, singlecopy, count, n_query):
         SeqIO.write(hit_seq, barcode_output, 'fasta')
         barcode.append(barcode_output)
         n += 1
+    if len(barcode) == 0:
+        raise Exception('''No barcode satisifying coverage limit thi round,
+        please rerun the program.''')
     return barcode
 
 
