@@ -134,9 +134,6 @@ def remove_multicopy(raw):
                  '{0}SPLIT{1}SPLIT{2}'.format(
                      i[0].id, i[1].id, i[2]) not in to_remove)):
             singlecopy.append(i)
-    if len(singlecopy) == 0:
-        raise Exception('''No single copy found in this round. Please rerun the
-                        program.''')
     singlecopy.sort(key=lambda i: i[3])
     return singlecopy
 
@@ -159,12 +156,13 @@ def extract(db, singlecopy, count, n_query):
         hit_blast_result = blast(hit_sample, db,
                                  hit_sample.replace('.fasta', '.xml'))
         hit_seq = parse(hit_blast_result)
+        hit_seq = remove_multicopy(hit_seq)
         hit_seq = [i[1] for i in hit_seq]
         cover = len(hit_seq) / count
         print(len(hit_seq), count, cover, arg.cover)
         if cover < arg.cover:
             print('coverage too small, drop it.')
-            raise Exception
+            continue
         for record in hit_seq:
             record.id = record.id.replace(' ', '_')
             record.description = record.description.replace(' ', '_')
@@ -175,9 +173,6 @@ def extract(db, singlecopy, count, n_query):
         SeqIO.write(hit_seq, barcode_output, 'fasta')
         barcode.append(barcode_output)
         n += 1
-    if len(barcode) == 0:
-        raise Exception('''No barcode satisifying coverage limit thi round,
-        please rerun the program.''')
     return barcode
 
 
@@ -191,6 +186,23 @@ def mafft(barcode_file):
             cpu_count(), barcode, aln_file), shell=True)
         barcode_aln.append(aln_file)
     return barcode_aln
+
+
+def find_barcode():
+    fasta_files = glob(path.join(arg.path, '*.fasta'))
+    count, merge_file, fasta_files = merge_and_split(fasta_files, arg.sample)
+    merge_db = makeblastdb(merge_file)
+    *query, db = fasta_files
+    db_name = makeblastdb(db)
+    for n_query, fasta in enumerate(query):
+        result_file = fasta.replace('.fasta', '.xml')
+        blast_result = blast(fasta, db_name, result_file)
+    # to be continue
+        raw_result = parse(blast_result)
+        singlecopy = remove_multicopy(raw_result)
+        barcode = extract(merge_db, singlecopy, count, n_query)
+        mafft(barcode)
+    return len(barcode)
 
 
 def main():
@@ -225,25 +237,14 @@ def main():
         mkdir(arg.tempdir)
     if not path.exists(arg.output):
         mkdir(arg.output)
-    fasta_files = glob(path.join(arg.path, '*.fasta'))
-    # pass
-    count, merge_file, fasta_files = merge_and_split(fasta_files, arg.sample)
-    # pass
-    merge_db = makeblastdb(merge_file)
-    *query, db = fasta_files
-    db_name = makeblastdb(db)
-    for n_query, fasta in enumerate(query):
-        result_file = fasta.replace('.fasta', '.xml')
-        blast_result = blast(fasta, db_name, result_file)
-    # to be continue
-        raw_result = parse(blast_result)
-        singlecopy = remove_multicopy(raw_result)
-        barcode = extract(merge_db, singlecopy, count, n_query)
-        mafft(barcode)
+    while True:
+        n_barcode = find_barcode()
+        if n_barcode != 0:
+            break
     times['end'] = timer()
-    print('''\n\nFinished with {0:.3f}s. You can find barcodes as aligned fasta
-          format in the output folder "{1}".\n'''.format(
-              times['end']-times['start'], arg.output))
+    print('''\n\nFinished with {0:.3f}s. You can find {1} barcodes as aligned fasta
+          format in the output folder "{2}".\n'''.format(
+              times['end']-times['start'], n_barcode, arg.output))
 
 
 if __name__ == '__main__':
