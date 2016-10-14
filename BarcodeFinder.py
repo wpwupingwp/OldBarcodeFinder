@@ -20,7 +20,8 @@ def print_time(function):
         start = timer()
         result = function(*args, **kargs)
         end = timer()
-        print('The function {0} costed {1:3f}s.\n'.format(
+        print('='*80)
+        print('The function {0} costed {1:3f}s.'.format(
             function.__name__, end-start))
         return result
     return wrapper
@@ -178,10 +179,6 @@ def mafft(barcode_file):
     return barcode_aln
 
 
-def cutoff_line():
-    print('='*80)
-
-
 def main():
     """This program will try to find out single-copy barcode to devide
     different species in given two fasta files while ignore distinction
@@ -207,7 +204,6 @@ def main():
     parser.add_argument('-o', '--output', default='out', help='output path')
     parser.add_argument('-t', '--tempdir', default='tmp',
                         help='temp file directory')
-    cutoff_line()
     global arg
     arg = parser.parse_args()
     if not path.exists(arg.tempdir):
@@ -222,7 +218,6 @@ def main():
                 merge.write(f.read())
     merge_db = makeblastdb(merge_file)
     fasta_files = [get_sample(i, arg.sample) for i in fasta_files]
-    print(fasta_files)
     *query, db = fasta_files
     db_name = makeblastdb(db)
     for n_query, fasta in enumerate(query):
@@ -233,11 +228,10 @@ def main():
         singlecopy = remove_multicopy(raw_result)
         barcode = extract(merge_db, singlecopy, n_query)
         mafft(barcode)
-    cutoff_line()
     times['end'] = timer()
-    print('''Finished with {0:.3f}s. You can find barcodes as aligned fasta
-          format in the output folder
-          "{1}".\n'''.format(times['end']-times['start'], arg.output))
+    print('''\n\nFinished with {0:.3f}s. You can find barcodes as aligned fasta
+          format in the output folder "{1}".\n'''.format(
+              times['end']-times['start'], arg.output))
 
 
 if __name__ == '__main__':
