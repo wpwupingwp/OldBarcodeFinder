@@ -9,6 +9,7 @@ from glob import glob
 from multiprocessing import cpu_count
 from os import path, mkdir
 from random import sample
+from statistics import mean, stdev
 from subprocess import run
 from tempfile import mkdtemp
 from timeit import default_timer as timer
@@ -140,7 +141,7 @@ def remove_multicopy(raw, is_merge):
 
 
 @print_time
-def extract(db, singlecopy, count, n_query):
+def extract(db, singlecopy, total_count, n_query):
     """Extract barcode sequence with BLAST against merged query files to
     ensure the validation of the barcode.
     """
@@ -159,7 +160,7 @@ def extract(db, singlecopy, count, n_query):
         hit_seq = parse(hit_blast_result)
         hit_seq = remove_multicopy(hit_seq, True)
         hit_seq = [i[1] for i in hit_seq]
-        cover = len(hit_seq) / count
+        cover = len(hit_seq) / total_count
         if cover < arg.cover:
             print('''The coverage of this barcode candidate is too small
 ({0:.3f}), drop it.'''.format(cover))
@@ -189,9 +190,23 @@ def mafft(barcode_file):
     return barcode_aln
 
 
+@print_time
+def stats(barcode, total_count):
+    handle = open(path.join(arg.output, 'stats.txt'), 'w')
+    handle.write('id,cover,length,stdev\n')
+    for aln in barcode:
+        item = list(SeqIO.parse(aln, 'fasta'))
+        cover = len(item) / total_count
+        length = [len(i.seq) for i in item]
+        to_write = '{0},{1:.3f},{2:.3f},{3:.3f}\n'.format(
+            aln, cover, mean(length), stdev(length))
+        handle.write(to_write)
+
+
 def find_barcode():
     fasta_files = glob(path.join(arg.path, '*.fasta'))
-    count, merge_file, sample_list = merge_and_split(fasta_files, arg.sample)
+    total_count, merge_file, sample_list = merge_and_split(
+        fasta_files, arg.sample)
     merge_db = makeblastdb(merge_file)
     *query, db = sample_list
     db_name = makeblastdb(db)
@@ -201,8 +216,9 @@ def find_barcode():
     # to be continue
         raw_result = parse(blast_result)
         singlecopy = remove_multicopy(raw_result, False)
-        barcode = extract(merge_db, singlecopy, count, n_query)
-        mafft(barcode)
+        barcode = extract(merge_db, singlecopy, total_count, n_query)
+        barcode_aln = mafft(barcode)
+        stats(barcode_aln, total_count)
     return len(barcode)
 
 
