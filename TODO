@@ -6,16 +6,17 @@
 6. tree
 #7. iterate
 #8. hsp.query/hsp.hit may use more memory
-9. check input fasta length
+#9. check input fasta length
 10. use namedtuple
 11. download data from NCBI
 #12. remove find_longest
 13. rename sequences for generate tree
-14. try to handle more than two taxon group
+#14. try to handle more than two taxon group
 #15. test in Windows
-16. hide output of makeblastdb
+#16. hide output of makeblastdb
 17. hide warning of parsing blast
 18. primer design
 19. for higher taxonomy class
-20. print verbose time consuming
-21. ensure the output is not empty
+#20. print verbose time consuming
+#21. ensure the output is not empty
+22. fix bug in Windows
