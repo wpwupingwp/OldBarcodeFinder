@@ -63,16 +63,12 @@ def merge_and_split(fasta_files, target):
         for fasta in fasta_files:
             output = path.join(arg.tempdir, '{0}-{1}'.format(
                 target, path.basename(fasta)))
-            raw = SeqIO.index(fasta, 'fasta')
-            raw_key = list(raw.keys())
-            count += len(raw_key)
-            target_list = sample(raw_key, target)
-            with open(output, 'w') as f:
-                for record in target_list:
-                    SeqIO.write(raw[record], f, 'fasta')
+            raw = list(SeqIO.parse(fasta, 'fasta'))
+            count += len(raw)
+            target_list = sample(raw, target)
+            SeqIO.write(target_list, output, 'fasta')
             sample_list.append(output)
-            with open(fasta, 'r') as f:
-                merge.write(f.read())
+            SeqIO.write(raw, merge, 'fasta')
     return count, merge_file, sample_list
 
 
