@@ -47,6 +47,17 @@ def check_dependence():
 
 
 @print_time
+def merge_fasta(fasta_files):
+    merge_file = path.join(arg.path, 'merge')
+    with open(merge_file, 'w') as merge:
+        for fasta in fasta_files:
+            with open(fasta, 'r') as f:
+                merge.write(f.read())
+    merge_db = makeblastdb(merge_file)
+    return merge_db
+
+
+@print_time
 def get_sample(fasta, target):
     output = path.join(arg.tempdir,
                        '{0}-{1}'.format(target, path.basename(fasta)))
@@ -211,13 +222,8 @@ def main():
     if not path.exists(arg.output):
         mkdir(arg.output)
     fasta_files = glob(path.join(arg.path, '*.fasta'))
-    merge_file = path.join(arg.path, 'merge')
-    with open(merge_file, 'w') as merge:
-        for fasta in fasta_files:
-            with open(fasta, 'r') as f:
-                merge.write(f.read())
-    merge_db = makeblastdb(merge_file)
     fasta_files = [get_sample(i, arg.sample) for i in fasta_files]
+    merge_db = merge_fasta(fasta_files)
     *query, db = fasta_files
     db_name = makeblastdb(db)
     for n_query, fasta in enumerate(query):
