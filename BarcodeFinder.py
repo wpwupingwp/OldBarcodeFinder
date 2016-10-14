@@ -20,7 +20,7 @@ def print_time(function):
         start = timer()
         result = function(*args, **kargs)
         end = timer()
-        print('='*80)
+        print('_'*80)
         print('The function {0} costed {1:.3f}s.'.format(
             function.__name__, end-start))
         return result
@@ -143,6 +143,7 @@ def remove_multicopy(raw):
                      i[0].id, i[1].id, i[2]) not in to_remove)):
             singlecopy.append(i)
     singlecopy.sort(key=lambda i: i[3])
+    print(len(singlecopy))
     return singlecopy
 
 
