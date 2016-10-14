@@ -55,7 +55,7 @@ def makeblastdb(db_file):
 
 @print_time
 def merge_and_split(fasta_files, target):
-    merge_file = path.join(arg.path, 'merge')
+    merge_file = path.join(tmp, 'merge')
     count = 0
     sample_list = list()
     with open(merge_file, 'w') as merge:
