@@ -108,9 +108,10 @@ def remove_multicopy(raw, total_count, is_merge=False):
     hsp.query, hsp.hit, hsp.query_start, hsp.hit_start, hsp.query_end,
     hsp.hit_end
     """
+    singlecopy = list()
+    to_remove = set()
     query_info = ['{0}{1}{2}'.format(i[0].id, i[1].id, i[2]) for i in raw]
     query_info = Counter(query_info)
-    to_remove = set()
     for key in query_info.keys():
         if query_info[key] != 1:
             to_remove.add(key)
@@ -119,8 +120,9 @@ def remove_multicopy(raw, total_count, is_merge=False):
     for key in hit_info.keys():
         if hit_info[key] != 1:
             to_remove.add(key)
-    # raw unhashable, here use i[3] instead
-    count_info = [i[3] for i in raw]
+    # raw unhashable, here use i[0].id instead. i[3] et al. is ok,
+    # but different match may share same location info
+    count_info = [i[0].id for i in raw]
     count_info = Counter(count_info)
     for hit in count_info.keys():
         if is_merge:
@@ -130,9 +132,8 @@ def remove_multicopy(raw, total_count, is_merge=False):
             condition = (count_info[hit] < arg.sample ** 2)
         if condition:
             to_remove.add(hit)
-    singlecopy = list()
     for i in raw:
-        if (i[3] not in to_remove and
+        if (i[0].id not in to_remove and
                 ('{0}{1}{2}'.format(
                     i[0].id, i[1].id, i[3]) not in to_remove and
                  '{0}{1}{2}'.format(
