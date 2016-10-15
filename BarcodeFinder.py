@@ -119,6 +119,7 @@ def remove_multicopy(raw, total_count, is_merge=False):
     for key in hit_info.keys():
         if hit_info[key] != 1:
             to_remove.add(key)
+    # raw unhashable, here use i[3] instead
     count_info = [i[3] for i in raw]
     count_info = Counter(count_info)
     for hit in count_info.keys():
