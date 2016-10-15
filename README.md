@@ -23,7 +23,7 @@ It depends on input data. If less than 1gb, the program could normally run on ma
 ### Software
 1. [python3] (https://www.python.org/downloads/)
 
-Be sure to install python3 rather than python 2.7.
+Be sure to install python3 rather than python 2.7. Besides, to use subprocess.run, you would better install python **3.5** or above
 
 2. [biopython] (http://biopython.org/wiki/Download)
 
