@@ -108,15 +108,13 @@ def remove_multicopy(raw, total_count, is_merge=False):
     hsp.query, hsp.hit, hsp.query_start, hsp.hit_start, hsp.query_end,
     hsp.hit_end
     """
-    query_info = ['{0}SPLIT{1}SPLIT{2}'.format(
-        i[0].id, i[1].id, i[2]) for i in raw]
+    query_info = ['{0}{1}{2}'.format(i[0].id, i[1].id, i[2]) for i in raw]
     query_info = Counter(query_info)
     to_remove = set()
     for key in query_info.keys():
         if query_info[key] != 1:
             to_remove.add(key)
-    hit_info = ['{0}SPLIT{1}SPLIT{2}'.format(
-        i[0].id, i[1].id, i[3]) for i in raw]
+    hit_info = ['{0}{1}{2}'.format(i[0].id, i[1].id, i[3]) for i in raw]
     hit_info = Counter(hit_info)
     for key in hit_info.keys():
         if hit_info[key] != 1:
@@ -134,9 +132,9 @@ def remove_multicopy(raw, total_count, is_merge=False):
     singlecopy = list()
     for i in raw:
         if (i[3] not in to_remove and
-                ('{0}SPLIT{1}SPLIT{2}'.format(
+                ('{0}{1}{2}'.format(
                     i[0].id, i[1].id, i[3]) not in to_remove and
-                 '{0}SPLIT{1}SPLIT{2}'.format(
+                 '{0}{1}{2}'.format(
                      i[0].id, i[1].id, i[2]) not in to_remove)):
             singlecopy.append(i)
     singlecopy.sort(key=lambda i: i[3])
