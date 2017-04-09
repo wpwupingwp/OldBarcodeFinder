@@ -21,15 +21,15 @@ The main features of BarcodeFinder were listed below.
 It depends on input data. If less than 1gb, the program could normally run on mainstream PC with less than 1 minute. Bigger data need more memory (not test).
 
 ### Software
-1. [python3] (https://www.python.org/downloads/)
+1. [python3](https://www.python.org/downloads/)
 
 Be sure to install python3 rather than python 2.7. Besides, to use subprocess.run, you would better install python **3.5** or above
 
-2. [biopython] (http://biopython.org/wiki/Download)
+2. [biopython](http://biopython.org/wiki/Download)
 
-3. [BLAST Suite] (https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
+3. [BLAST Suite](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download)
 
-4. [mafft] (http://mafft.cbrc.jp/alignment/software/)
+4. [mafft](http://mafft.cbrc.jp/alignment/software/)
 
 For Windows users, please make sure:
 
