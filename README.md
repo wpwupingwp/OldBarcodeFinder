@@ -76,10 +76,6 @@ or
 
 >python3 BarcodeFinder.py –h.
 
-## Copying ##
-
-All rights reserved (**temporarily**). The license will change to **GPL** after the program becomes mature.
-
 ## Information ##
 
 The latest version of BarcodeFinder can be found on [github] (https://github.com/wpwupingwp/201609).
